@@ -22,3 +22,5 @@ and after that it waits 60 seconds to send the next request.
 
 Finally you will get a detailed view of wich items have gotten sold in the last couple of minutes,
 including an average and a max value at the bottom.
+
+![screenshot1](screenshots/screenshot1.JPG)
