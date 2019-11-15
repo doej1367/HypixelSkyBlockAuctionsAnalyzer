@@ -5,7 +5,9 @@ Not one of my most beautiful projects but it is working well for the little time
 There are visual bugs like it doesn't always scroll down, 
 the apikey isn't saved anywhere unless you hardcode yours in,
 not all the input values are clear what they do
-and there isn't even a gradle build, but in the core it works.
+and there isn't even a gradle build.
+
+In brief: this is a fast coded, uncommented mess, but in the core it works and that was the only goal for this project.
 
 To run this you just have to clone this project and import it into Eclipse as a normal Java Project.
 
