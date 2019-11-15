@@ -24,3 +24,5 @@ Finally you will get a detailed view of wich items have gotten sold in the last 
 including an average and a max value at the bottom.
 
 ![screenshot1](screenshots/screenshot1.JPG)
+![screenshot2](screenshots/screenshot2.JPG)
+
