@@ -2,8 +2,9 @@
 This is few-hours-project to create something that can tell the average price of an auction item
 from the auction house on Hypixel Skyblock. 
 Not one of my most beautiful projects but it is working well for the little time i had for it, so there you go.
-There are visual bugs like it doesn't always scroll down 
-and not all the input values are clear what they do, but in the core it works.
+There are visual bugs like it doesn't always scroll down, 
+not all the input values are clear what they do
+and there isn't even a gradle build, but in the core it works.
 
 To run this you just have to clone this project and import it into Eclipse as a normal Java Project.
 
