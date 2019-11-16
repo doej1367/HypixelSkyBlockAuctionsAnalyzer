@@ -104,8 +104,8 @@ public class Main {
 
 	private static Stream<Auction> filterStream(Stream<Auction> s, boolean filterCT, String CT, boolean matchCase,
 			boolean filterSL, int SL, boolean filterTT, int TT, boolean filterHB, int HB) {
-		return s.filter(
-				a -> !filterCT || (matchCase ? a.getItem_name().equalsIgnoreCase(CT) : a.getItem_name().contains(CT)))
+		return s.filter(a -> !filterCT || (matchCase ? a.getItem_name().equalsIgnoreCase(CT)
+				: a.getItem_name().toLowerCase().contains(CT.toLowerCase())))
 				.filter(a -> !filterSL || a.getSeconds_left() < SL)
 				.filter(a -> !filterTT || a.getSeconds_on() < 5 * 60 || a.getSeconds_on() > TT)
 				.filter(a -> !filterHB || a.getHighest_bid_amount() > HB);
