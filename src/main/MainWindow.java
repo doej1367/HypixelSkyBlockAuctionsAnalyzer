@@ -3,6 +3,8 @@ package main;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -120,6 +122,29 @@ public class MainWindow extends JFrame {
 		textField_API = new JTextField(Main.api_key);
 		panel_1.add(textField_API, "cell 6 1 6 1,growx");
 		textField_API.setColumns(10);
+		textField_API.addKeyListener(new KeyListener() {
+			
+			@Override
+			public void keyTyped(KeyEvent e) {
+			}
+			
+			@Override
+			public void keyReleased(KeyEvent e) {
+				try {
+					File config = new File("config.txt");
+					BufferedWriter bw = new BufferedWriter(new FileWriter(config));
+					bw.write("" + textField_API.getText());
+					bw.close();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
+			
+			@Override
+			public void keyPressed(KeyEvent e) {
+				
+			}
+		});
 
 		JLabel lblFilterContainingText = new JLabel("Filter Containing Text:");
 		panel_1.add(lblFilterContainingText, "cell 0 3 5 1,growx");
@@ -222,14 +247,6 @@ public class MainWindow extends JFrame {
 		btn_multireq.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				Main.api_key = textField_API.getText();
-				try {
-					File config = new File("config.txt");
-					BufferedWriter bw = new BufferedWriter(new FileWriter(config));
-					bw.write("" + Main.api_key);
-					bw.close();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
 				int tmp = (int) (spinner_multireq.getValue());
 				for (int i = tmp; i > 0; i--) {
 					Main.sendRequest(checkBox_CT.isSelected(), textField_CT.getText(), chckbxMatchCase.isSelected(),
@@ -267,14 +284,6 @@ public class MainWindow extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Main.api_key = textField_API.getText();
-				try {
-					File config = new File("config.txt");
-					BufferedWriter bw = new BufferedWriter(new FileWriter(config));
-					bw.write("" + Main.api_key);
-					bw.close();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
 				Main.sendRequest(checkBox_CT.isSelected(), textField_CT.getText(), chckbxMatchCase.isSelected(),
 						checkBox_SL.isSelected(),
 						(int) (spinner_SL.getValue()) * (chckbxMinutesSL.isSelected() ? 60 : 1),
