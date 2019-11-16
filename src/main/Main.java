@@ -67,13 +67,15 @@ public class Main {
 		mw.getProgressBar().setStringPainted(false);
 		mw.getProgressBar().paint(mw.getProgressBar().getGraphics());
 		consoleOut(" [ OK ]\n");
-		filterData(filterCT, CT, matchCase, filterSL, SL, filterTT, TT, filterHB, HB);
+		updateConsoleOut();
 	}
 
 	public static void filterData(boolean filterCT, String CT, boolean matchCase, boolean filterSL, int SL,
 			boolean filterTT, int TT, boolean filterHB, int HB) {
+		mw.getBtnFilterButton().setEnabled(false);
 		if (data.isEmpty()) {
 			consoleOut(" [ FAILURE ] No data collected yet!\n");
+			mw.getBtnFilterButton().setEnabled(true);
 			return;
 		}
 		consoleOut("Filtering collected data ...\n");
@@ -97,12 +99,7 @@ public class Main {
 					+ " coins\n");
 		} else
 			consoleOut("No results!\n");
-		try {
-			Thread.sleep(5);
-		} catch (InterruptedException e) {
-		}
-		mw.getSp().getVerticalScrollBar().setValue(mw.getSp().getVerticalScrollBar().getMaximum());
-		mw.getSp().paint(mw.getSp().getGraphics());
+		updateConsoleOut();
 	}
 
 	private static Stream<Auction> filterStream(Stream<Auction> s, boolean filterCT, String CT, boolean matchCase,
@@ -116,7 +113,23 @@ public class Main {
 
 	private static void consoleOut(String s) {
 		mw.getConsoleOut().append(s);
-		mw.getSp().getVerticalScrollBar().setValue(mw.getSp().getVerticalScrollBar().getMaximum());
+
+	}
+
+	private static void updateConsoleOut() {
+		Thread t = new Thread() {
+			@Override
+			public void run() {
+				try {
+					Thread.sleep(10);
+				} catch (InterruptedException e) {
+				}
+				mw.getSp().getVerticalScrollBar().setValue(mw.getSp().getVerticalScrollBar().getMaximum());
+				mw.getSp().paint(mw.getSp().getGraphics());
+				mw.getBtnFilterButton().setEnabled(true);
+			};
+		};
+		t.start();
 	}
 
 	private static void loadPage(int page) {
@@ -136,6 +149,7 @@ public class Main {
 		JSONObject obj = new JSONObject(out);
 		long timestamp = obj.getLong("lastUpdated");
 		max_pages = obj.getInt("totalPages");
+		mw.getBtnFilterButton().setEnabled(false);
 		for (Auction a : data) {
 			a.setTimestamp(timestamp);
 		}
@@ -162,7 +176,7 @@ public class Main {
 				data.get(tmp).setHighest_bid_amount(highest_bid_amount);
 			}
 		}
-
+		mw.getBtnFilterButton().setEnabled(true);
 	}
 
 	private static int itemCountFromItemBytes(String s) {
