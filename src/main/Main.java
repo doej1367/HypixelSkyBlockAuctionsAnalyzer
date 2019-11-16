@@ -21,47 +21,92 @@ import org.json.*;
 
 public class Main {
 
-	public static String api_key = "";
-	public static int max_pages = 1;
-	public static ArrayList<Auction> data;
-	public static MainWindow mw;
+	private static Main m;
+	private static MainWindow mw;
+	private static int requests = 0;
+	private static int loaded;
+	private String api_key = "";
+	private int max_pages = 1;
+	private ArrayList<Auction> data;
+	private int maxmax_pages = 0;
+	private int[] synchronizer = new int[1];
 
 	public static void main(String[] args) {
+		m = new Main();
 		try {
 			File config = new File("config.txt");
 			if (!config.exists())
 				config.createNewFile();
 			BufferedReader br = new BufferedReader(new FileReader(config));
-			api_key = "" + br.readLine();
+			m.api_key = "" + br.readLine();
 			br.close();
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
+		startRequestResetter();
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					mw = new MainWindow();
+					mw = new MainWindow(m);
 					mw.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
 		});
-		data = new ArrayList<Auction>();
+		m.data = new ArrayList<Auction>();
 	}
 
-	public static void sendRequest(boolean filterCT, String CT, boolean matchCase, boolean filterSL, int SL,
-			boolean filterTT, int TT, boolean filterHB, int HB) {
-		consoleOut("loading pages ");
+	public void sendRequest(boolean filterCT, String CT, boolean matchCase, boolean filterSL, int SL, boolean filterTT,
+			int TT, boolean filterHB, int HB) {
+		consoleOut("loading pages ... ");
 		if (!mw.getChckbxKeepOldData().isSelected())
-			data = new ArrayList<Auction>();
+			m.data = new ArrayList<Auction>();
 		mw.getProgressBar().setStringPainted(true);
 		mw.getProgressBar().paint(mw.getProgressBar().getGraphics());
-		for (int i = 0; i < max_pages; i++) {
-			loadPage(i);
+		ArrayList<MyThread> threads = new ArrayList<>();
+		loaded = 1;
+		Thread t_loading = new Thread() {
+			@Override
+			public void run() {
+				while (loaded > 0) {
+					try {
+						Thread.sleep(200);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					mw.getProgressBar().setValue(loaded);
+					mw.getProgressBar().setMaximum(max_pages);
+					mw.getProgressBar().paint(mw.getProgressBar().getGraphics());
+				}
+			}
+		};
+		t_loading.start();
+		MyThread t0 = new MyThread(0);
+		t0.start();
+		try {
+			t0.join();
 			mw.getProgressBar().setMaximum(max_pages);
-			mw.getProgressBar().setValue(i + 1);
-			mw.getProgressBar().paint(mw.getProgressBar().getGraphics());
+		} catch (InterruptedException e1) {
+			e1.printStackTrace();
+		}
+		if (max_pages > maxmax_pages)
+			maxmax_pages = max_pages;
+		for (int i = 1; i < max_pages; i++) {
+			MyThread t = new MyThread(i);
+			threads.add(t);
+			t.start();
+			if (max_pages > maxmax_pages)
+				maxmax_pages = max_pages;
+		}
+
+		try {
+			for (MyThread t : threads)
+				t.join();
+			loaded = 0;
+			t_loading.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 		mw.getProgressBar().setValue(0);
 		mw.getProgressBar().setStringPainted(false);
@@ -70,8 +115,27 @@ public class Main {
 		updateConsoleOut();
 	}
 
-	public static void filterData(boolean filterCT, String CT, boolean matchCase, boolean filterSL, int SL,
-			boolean filterTT, int TT, boolean filterHB, int HB) {
+	class MyThread extends Thread {
+		private int i;
+
+		public MyThread(int i) {
+			this.i = i;
+		}
+
+		@Override
+		public void run() {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			loadPage(i);
+			loaded++;
+		}
+	}
+
+	public void filterData(boolean filterCT, String CT, boolean matchCase, boolean filterSL, int SL, boolean filterTT,
+			int TT, boolean filterHB, int HB) {
 		mw.getBtnFilterButton().setEnabled(false);
 		if (data.isEmpty()) {
 			consoleOut(" [ FAILURE ] No data collected yet!\n");
@@ -102,7 +166,7 @@ public class Main {
 		updateConsoleOut();
 	}
 
-	private static Stream<Auction> filterStream(Stream<Auction> s, boolean filterCT, String CT, boolean matchCase,
+	private Stream<Auction> filterStream(Stream<Auction> s, boolean filterCT, String CT, boolean matchCase,
 			boolean filterSL, int SL, boolean filterTT, int TT, boolean filterHB, int HB) {
 		return s.filter(a -> !filterCT || (matchCase ? a.getItem_name().equalsIgnoreCase(CT)
 				: a.getItem_name().toLowerCase().contains(CT.toLowerCase())))
@@ -111,12 +175,12 @@ public class Main {
 				.filter(a -> !filterHB || a.getHighest_bid_amount() > HB);
 	}
 
-	private static void consoleOut(String s) {
+	private void consoleOut(String s) {
 		mw.getConsoleOut().append(s);
 
 	}
 
-	private static void updateConsoleOut() {
+	private void updateConsoleOut() {
 		Thread t = new Thread() {
 			@Override
 			public void run() {
@@ -132,13 +196,32 @@ public class Main {
 		t.start();
 	}
 
-	private static void loadPage(int page) {
+	private static void startRequestResetter() {
+		Thread t = new Thread() {
+			@Override
+			public void run() {
+				try {
+					Thread.sleep(60 * 1000);
+				} catch (InterruptedException e) {
+				}
+				requests = 0;
+			};
+		};
+		t.start();
+	}
+
+	private void loadPage(int page) {
 		URL url;
 		String out = "";
 		try {
+			if (requests > 120 - maxmax_pages) {
+				consoleOut("[ WARNING ] Wait a bit or you will exceed the request cap of 120 / min\n");
+				return;
+			}
 			url = new URL("https://api.hypixel.net/skyblock/auctions?key=" + api_key + "&page=" + page);
 			HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
 			out = getContent(con);
+			requests++;
 		} catch (MalformedURLException e) {
 			consoleOut("[ FAILURE ] Some internet connection problem!\n");
 			e.printStackTrace();
@@ -150,8 +233,10 @@ public class Main {
 		long timestamp = obj.getLong("lastUpdated");
 		max_pages = obj.getInt("totalPages");
 		mw.getBtnFilterButton().setEnabled(false);
-		for (Auction a : data) {
-			a.setTimestamp(timestamp);
+		synchronized (synchronizer) {
+			for (Auction a : data) {
+				a.setTimestamp(timestamp);
+			}
 		}
 		JSONArray arr = obj.getJSONArray("auctions");
 		for (int i = 0; i < arr.length(); i++) {
@@ -167,19 +252,21 @@ public class Main {
 			// TODO
 			Auction addition = new Auction(uuid, start, end, timestamp, item_name, highest_bid_amount, item_count,
 					starting_bid);
-			int tmp = data.indexOf(addition);
-			if (tmp < 0)
-				data.add(addition);
-			else {
-				data.get(tmp).setTimestamp(timestamp);
-				data.get(tmp).setEnd(end);
-				data.get(tmp).setHighest_bid_amount(highest_bid_amount);
+			synchronized (synchronizer) {
+				int tmp = data.indexOf(addition);
+				if (tmp < 0)
+					data.add(addition);
+				else {
+					data.get(tmp).setTimestamp(timestamp);
+					data.get(tmp).setEnd(end);
+					data.get(tmp).setHighest_bid_amount(highest_bid_amount);
+				}
 			}
 		}
 		mw.getBtnFilterButton().setEnabled(true);
 	}
 
-	private static int itemCountFromItemBytes(String s) {
+	private int itemCountFromItemBytes(String s) {
 		String jsonFormatOutput = "";
 		try {
 			jsonFormatOutput = jsonCode(s);
@@ -192,16 +279,16 @@ public class Main {
 		return out.getBytes()[0];
 	}
 
-	public static String jsonCode(String inputString) throws IOException {
+	public String jsonCode(String inputString) throws IOException {
 		String jsonFormatOutput = decompressGzip(decodeBase64String(inputString));
 		return jsonFormatOutput;
 	}
 
-	public static byte[] decodeBase64String(String string) {
+	public byte[] decodeBase64String(String string) {
 		return Base64.getDecoder().decode(string);
 	}
 
-	public static String decompressGzip(byte[] compressed) throws IOException {
+	public String decompressGzip(byte[] compressed) throws IOException {
 		final int BUFFER_SIZE = 32;
 		ByteArrayInputStream byteArrayStream = new ByteArrayInputStream(compressed);
 		GZIPInputStream gzipStream = new GZIPInputStream(byteArrayStream, BUFFER_SIZE);
@@ -216,7 +303,7 @@ public class Main {
 		return string.toString();
 	}
 
-	private static String getContent(HttpsURLConnection con) {
+	private String getContent(HttpsURLConnection con) {
 		if (con != null) {
 			try {
 				String res = "";
@@ -235,5 +322,13 @@ public class Main {
 			}
 		}
 		return "";
+	}
+
+	public String getApi_key() {
+		return api_key;
+	}
+
+	public void setApi_key(String api_key) {
+		this.api_key = api_key;
 	}
 }

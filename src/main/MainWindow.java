@@ -91,7 +91,7 @@ public class MainWindow extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public MainWindow() {
+	public MainWindow(Main Main) {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 850, 580);
 		contentPane = new JPanel();
@@ -120,7 +120,7 @@ public class MainWindow extends JFrame {
 		JLabel lblNewLabel = new JLabel("API key:");
 		panel_1.add(lblNewLabel, "cell 0 1 5 1,growx");
 
-		textField_API = new JTextField(Main.api_key);
+		textField_API = new JTextField(Main.getApi_key());
 		panel_1.add(textField_API, "cell 6 1 6 1,growx");
 		textField_API.setColumns(10);
 		textField_API.addKeyListener(new KeyListener() {
@@ -251,7 +251,7 @@ public class MainWindow extends JFrame {
 				Thread t = new Thread() {
 					@Override
 					public void run() {
-						Main.api_key = textField_API.getText();
+						Main.setApi_key(textField_API.getText());
 						int tmp = (int) (spinner_multireq.getValue());
 						for (int i = tmp; i > 0; i--) {
 							Main.sendRequest(checkBox_CT.isSelected(), textField_CT.getText(),
@@ -302,7 +302,7 @@ public class MainWindow extends JFrame {
 				Thread t = new Thread() {
 					@Override
 					public void run() {
-						Main.api_key = textField_API.getText();
+						Main.setApi_key(textField_API.getText());
 						Main.sendRequest(checkBox_CT.isSelected(), textField_CT.getText(), chckbxMatchCase.isSelected(),
 								checkBox_SL.isSelected(),
 								(int) (spinner_SL.getValue()) * (chckbxMinutesSL.isSelected() ? 60 : 1),
