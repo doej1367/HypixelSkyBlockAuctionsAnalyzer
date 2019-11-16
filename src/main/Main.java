@@ -164,7 +164,7 @@ public class Main {
 			long end = auction.getLong("end");
 			long highest_bid_amount = auction.getLong("highest_bid_amount");
 			long starting_bid = auction.getLong("starting_bid");
-			// TODO
+			// TODO maybe add more detail to the auction objects
 			Auction addition = new Auction(uuid, start, end, timestamp, item_name, highest_bid_amount, item_count,
 					starting_bid);
 			int tmp = data.indexOf(addition);
