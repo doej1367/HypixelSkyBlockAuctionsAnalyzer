@@ -3,6 +3,8 @@ package main;
 import java.awt.EventQueue;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
@@ -19,17 +21,27 @@ import org.json.*;
 
 public class Main {
 
-	public static String api_key = APIKey.api_key;
+	public static String api_key = "";
 	public static int max_pages = 1;
 	public static ArrayList<Auction> data;
-	public static MainWindow mw = new MainWindow();
+	public static MainWindow mw;
 
 	public static void main(String[] args) {
+		try {
+			File config = new File("config.txt");
+			if (!config.exists())
+				config.createNewFile();
+			BufferedReader br = new BufferedReader(new FileReader(config));
+			api_key = "" + br.readLine();
+			br.close();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					MainWindow frame = mw;
-					frame.setVisible(true);
+					mw = new MainWindow();
+					mw.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

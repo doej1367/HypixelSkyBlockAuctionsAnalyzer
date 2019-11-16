@@ -3,6 +3,10 @@ package main;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -112,8 +116,8 @@ public class MainWindow extends JFrame {
 
 		JLabel lblNewLabel = new JLabel("API key:");
 		panel_1.add(lblNewLabel, "cell 0 1 5 1,growx");
-
-		textField_API = new JTextField(APIKey.api_key);
+		
+		textField_API = new JTextField(Main.api_key);
 		panel_1.add(textField_API, "cell 6 1 6 1,growx");
 		textField_API.setColumns(10);
 
@@ -218,6 +222,14 @@ public class MainWindow extends JFrame {
 		btn_multireq.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				Main.api_key = textField_API.getText();
+				try {
+					File config = new File("config.txt");
+					BufferedWriter bw = new BufferedWriter(new FileWriter(config));
+					bw.write("" + Main.api_key);
+					bw.close();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
 				int tmp = (int) (spinner_multireq.getValue());
 				for (int i = tmp; i > 0; i--) {
 					Main.sendRequest(checkBox_CT.isSelected(), textField_CT.getText(), chckbxMatchCase.isSelected(),
@@ -255,6 +267,14 @@ public class MainWindow extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Main.api_key = textField_API.getText();
+				try {
+					File config = new File("config.txt");
+					BufferedWriter bw = new BufferedWriter(new FileWriter(config));
+					bw.write("" + Main.api_key);
+					bw.close();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
 				Main.sendRequest(checkBox_CT.isSelected(), textField_CT.getText(), chckbxMatchCase.isSelected(),
 						checkBox_SL.isSelected(),
 						(int) (spinner_SL.getValue()) * (chckbxMinutesSL.isSelected() ? 60 : 1),
