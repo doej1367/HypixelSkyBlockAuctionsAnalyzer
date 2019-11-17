@@ -11,8 +11,8 @@ public class Auction {
 	private long end;
 	private long timestamp;
 
-	public Auction(String uuid, String auctioneer, long start, long end, long timestamp, String item_name, long highest_bid_amount,
-			int item_count, long starting_bid) {
+	public Auction(String uuid, String auctioneer, long start, long end, long timestamp, String item_name,
+			long highest_bid_amount, int item_count, long starting_bid) {
 		super();
 		this.setUuid(uuid);
 		this.setAuctioneer(auctioneer);
@@ -28,13 +28,13 @@ public class Auction {
 	public long getSeconds_left() {
 		return ((end - timestamp) / 1000);
 	}
-	
-	public double getNextBidAmount() {
+
+	public long getNextBidAmount() {
 		double b1 = getHighest_bid_amount();
 		if (b1 == 0)
 			return getStarting_bid();
 		else
-			return b1 * 1.15;
+			return Math.round(b1 * 1.15);
 	}
 
 	public long getStart() {
