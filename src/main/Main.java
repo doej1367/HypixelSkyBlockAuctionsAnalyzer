@@ -92,9 +92,9 @@ public class Main {
 		long sum = filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, filterHB, HB)
 				.mapToLong(a -> a.getHighest_bid_amount() / a.getItem_count()).sum();
 		if (count > 0) {
-			consoleOut("Buy Price");
+			consoleOut("Buy Price\n");
 			printCheapest(3, filterCT, CT, matchCase, filterSL, SL, filterTT, TT, filterHB, HB);
-			consoleOut("Sell Price");
+			consoleOut("Sell Price\n");
 			consoleOut("Average: " + (sum / count) + " coins\n");
 			consoleOut("Maximum: "
 					+ (filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, filterHB, HB)
