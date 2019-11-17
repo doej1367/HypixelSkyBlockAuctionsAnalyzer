@@ -4,6 +4,7 @@ public class Auction {
 	private String uuid;
 	private String auctioneer;
 	private String item_name;
+	private String item_lore;
 	private long starting_bid;
 	private long highest_bid_amount;
 	private int item_count;
@@ -12,7 +13,7 @@ public class Auction {
 	private long timestamp;
 
 	public Auction(String uuid, String auctioneer, long start, long end, long timestamp, String item_name,
-			long highest_bid_amount, int item_count, long starting_bid) {
+			String item_lore, long highest_bid_amount, int item_count, long starting_bid) {
 		super();
 		this.setUuid(uuid);
 		this.setAuctioneer(auctioneer);
@@ -20,6 +21,7 @@ public class Auction {
 		this.end = end;
 		this.timestamp = timestamp;
 		this.item_name = item_name;
+		this.setItem_lore(item_lore);
 		this.highest_bid_amount = highest_bid_amount;
 		this.starting_bid = starting_bid;
 		this.item_count = item_count;
@@ -133,6 +135,14 @@ public class Auction {
 
 	public void setAuctioneer(String auctioneer) {
 		this.auctioneer = auctioneer;
+	}
+
+	public String getItem_lore() {
+		return item_lore;
+	}
+
+	public void setItem_lore(String item_lore) {
+		this.item_lore = item_lore;
 	}
 
 }

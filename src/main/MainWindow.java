@@ -48,7 +48,7 @@ public class MainWindow extends JFrame {
 
 	private JTextArea consoleOut;
 	private JScrollPane sp;
-	private JCheckBox chckbxMatchCase;
+	private JCheckBox chckbxMatchCase_CT;
 	private JCheckBox chckbxMinutesSL;
 	private JLabel lblFilterTotalTime;
 	private JCheckBox checkBox_TT;
@@ -71,13 +71,17 @@ public class MainWindow extends JFrame {
 	private JSpinner spinner_multireq;
 	private JButton btn_multireq;
 	private JButton btnSendRequest;
+	private JLabel label;
+	private JCheckBox checkBox_CTL;
+	private JTextField textField_CTL;
+	private JCheckBox chckbxMatchCase_CTL;
 
 	public JProgressBar getProgressBar() {
 		return progressBar;
 	}
 
 	public JCheckBox getChckbxMatchCase() {
-		return chckbxMatchCase;
+		return chckbxMatchCase_CT;
 	}
 
 	public JScrollPane getSp() {
@@ -114,8 +118,7 @@ public class MainWindow extends JFrame {
 
 		JPanel panel_1 = new JPanel();
 		contentPane.add(panel_1, BorderLayout.CENTER);
-		panel_1.setLayout(new MigLayout("fill", "[][][][][22.00][][30.00,grow][30.00,grow][][][][][][][][][][]",
-				"[][][][][][][][][][][][][][][]"));
+		panel_1.setLayout(new MigLayout("fill", "[][][][][22.00][][30.00,grow][30.00,grow][][][][][][][][][][]", "[][][][][][][][][][][][][][]"));
 
 		JLabel lblNewLabel = new JLabel("API key:");
 		panel_1.add(lblNewLabel, "cell 0 1 5 1,growx");
@@ -147,7 +150,7 @@ public class MainWindow extends JFrame {
 			}
 		});
 
-		JLabel lblFilterContainingText = new JLabel("Filter Containing Text:");
+		JLabel lblFilterContainingText = new JLabel("Filter Containing Text (Title):");
 		panel_1.add(lblFilterContainingText, "cell 0 3 5 1,growx");
 
 		checkBox_CT = new JCheckBox("");
@@ -159,63 +162,67 @@ public class MainWindow extends JFrame {
 		textField_CT.setColumns(10);
 		panel_1.add(textField_CT, "cell 6 3 6 1,growx");
 
-		chckbxMatchCase = new JCheckBox("Match Case");
-		chckbxMatchCase.setToolTipText("");
-		panel_1.add(chckbxMatchCase, "cell 12 3 5 1,growx");
+		chckbxMatchCase_CT = new JCheckBox("Match Case");
+		chckbxMatchCase_CT.setToolTipText("");
+		panel_1.add(chckbxMatchCase_CT, "cell 12 3 5 1,growx");
+
+		label = new JLabel("Filter Containing Text (Lore):");
+		panel_1.add(label, "cell 0 4 5 1");
+
+		checkBox_CTL = new JCheckBox("");
+		checkBox_CTL.setSelected(true);
+		panel_1.add(checkBox_CTL, "cell 5 4");
+
+		textField_CTL = new JTextField();
+		textField_CTL.setColumns(10);
+		panel_1.add(textField_CTL, "cell 6 4 6 1,growx");
+
+		chckbxMatchCase_CTL = new JCheckBox("Match Case");
+		chckbxMatchCase_CTL.setEnabled(false);
+		chckbxMatchCase_CTL.setToolTipText("");
+		panel_1.add(chckbxMatchCase_CTL, "cell 12 4 5 1");
 
 		JLabel lblFilterSecondsLeft = new JLabel("Filter Seconds Left (less than):");
-		panel_1.add(lblFilterSecondsLeft, "cell 0 4 5 1,growx");
+		panel_1.add(lblFilterSecondsLeft, "cell 0 5 5 1,growx");
 
 		checkBox_SL = new JCheckBox("");
 		checkBox_SL.setSelected(true);
-		panel_1.add(checkBox_SL, "cell 5 4");
+		panel_1.add(checkBox_SL, "cell 5 5");
 
 		spinner_SL = new JSpinner();
 		spinner_SL.setModel(new SpinnerNumberModel(new Integer(1), new Integer(0), null, new Integer(1)));
-		panel_1.add(spinner_SL, "cell 6 4 6 1,growx");
+		panel_1.add(spinner_SL, "cell 6 5 6 1,growx");
 
 		chckbxMinutesSL = new JCheckBox("Minutes");
 		chckbxMinutesSL.setSelected(true);
 		chckbxMinutesSL.setToolTipText("");
-		panel_1.add(chckbxMinutesSL, "cell 12 4 5 1");
+		panel_1.add(chckbxMinutesSL, "cell 12 5 5 1");
 
 		lblFilterTotalTime = new JLabel("Filter Total Time Available (more than):");
-		panel_1.add(lblFilterTotalTime, "cell 0 5 5 1");
+		panel_1.add(lblFilterTotalTime, "cell 0 6 5 1");
 
 		checkBox_TT = new JCheckBox("");
-		panel_1.add(checkBox_TT, "cell 5 5");
+		panel_1.add(checkBox_TT, "cell 5 6");
 
 		spinner_TT = new JSpinner();
 		spinner_TT.setModel(new SpinnerNumberModel(new Integer(5), new Integer(0), null, new Integer(1)));
-		panel_1.add(spinner_TT, "cell 6 5 6 1,growx");
+		panel_1.add(spinner_TT, "cell 6 6 6 1,growx");
 
 		checkBox_MinutesTT = new JCheckBox("Minutes");
 		checkBox_MinutesTT.setSelected(true);
 		checkBox_MinutesTT.setToolTipText("");
-		panel_1.add(checkBox_MinutesTT, "cell 12 5 5 1");
+		panel_1.add(checkBox_MinutesTT, "cell 12 6 5 1");
 
 		JLabel lblFilterHighestBidMinimum = new JLabel("Filter Highest Bid (more than):");
-		panel_1.add(lblFilterHighestBidMinimum, "cell 0 6 5 1,growx");
+		panel_1.add(lblFilterHighestBidMinimum, "cell 0 7 5 1,growx");
 
 		checkBox_HB = new JCheckBox("");
 		checkBox_HB.setSelected(true);
-		panel_1.add(checkBox_HB, "cell 5 6");
+		panel_1.add(checkBox_HB, "cell 5 7");
 
 		spinner_HB = new JSpinner();
 		spinner_HB.setModel(new SpinnerNumberModel(new Integer(1), new Integer(0), null, new Integer(1)));
-		panel_1.add(spinner_HB, "cell 6 6 6 1,growx");
-
-		btnFilterButton = new JButton("Filter Collected Data");
-		btnFilterButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				Main.filterData(checkBox_CT.isSelected(), textField_CT.getText(), chckbxMatchCase.isSelected(),
-						checkBox_SL.isSelected(),
-						(int) (spinner_SL.getValue()) * (chckbxMinutesSL.isSelected() ? 60 : 1),
-						checkBox_TT.isSelected(),
-						(int) (spinner_TT.getValue()) * (checkBox_MinutesTT.isSelected() ? 60 : 1),
-						checkBox_HB.isSelected(), (int) (spinner_HB.getValue()));
-			}
-		});
+		panel_1.add(spinner_HB, "cell 6 7 6 1,growx");
 
 		rdbtnHighestbidasc = new JRadioButton("Sort HighestBidAsc");
 		rdbtnHighestbidasc.addChangeListener(new ChangeListener() {
@@ -224,7 +231,7 @@ public class MainWindow extends JFrame {
 					rdbtnSecondsleftdec.setSelected(false);
 			}
 		});
-		panel_1.add(rdbtnHighestbidasc, "cell 0 8 5 1,growx");
+		panel_1.add(rdbtnHighestbidasc, "cell 0 9 5 1,growx");
 
 		rdbtnSecondsleftdec = new JRadioButton("Sort SecondsLeftDec");
 		rdbtnSecondsleftdec.setSelected(true);
@@ -234,67 +241,76 @@ public class MainWindow extends JFrame {
 					rdbtnHighestbidasc.setSelected(false);
 			}
 		});
-		panel_1.add(rdbtnSecondsleftdec, "cell 0 9 5 1,growx");
-
-		spinner_multireq = new JSpinner();
-		spinner_multireq.setModel(new SpinnerNumberModel(new Integer(5), new Integer(1), null, new Integer(1)));
-		spinner_multireq.addChangeListener(new ChangeListener() {
-			public void stateChanged(ChangeEvent arg0) {
-				btn_multireq.setText((int) (spinner_multireq.getValue()) + " Requests in a row");
-			}
-		});
-		panel_1.add(spinner_multireq, "cell 12 9 5 1,growx");
-
-		btn_multireq = new JButton((int) (spinner_multireq.getValue()) + " Requests in a row");
-		btn_multireq.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				enableButtons(false);
-				Thread t = new Thread() {
-					@Override
-					public void run() {
-						Main.api_key = textField_API.getText();
-						int tmp = (int) (spinner_multireq.getValue());
-						for (int i = tmp; i > 0; i--) {
-							Main.sendRequest(checkBox_CT.isSelected(), textField_CT.getText(),
-									chckbxMatchCase.isSelected(), checkBox_SL.isSelected(),
-									(int) (spinner_SL.getValue()) * (chckbxMinutesSL.isSelected() ? 60 : 1),
-									checkBox_TT.isSelected(),
-									(int) (spinner_TT.getValue()) * (checkBox_MinutesTT.isSelected() ? 60 : 1),
-									checkBox_HB.isSelected(), (int) (spinner_HB.getValue()));
-							Main.filterData(checkBox_CT.isSelected(), textField_CT.getText(),
-									chckbxMatchCase.isSelected(), checkBox_SL.isSelected(),
-									(int) (spinner_SL.getValue()) * (chckbxMinutesSL.isSelected() ? 60 : 1),
-									checkBox_TT.isSelected(),
-									(int) (spinner_TT.getValue()) * (checkBox_MinutesTT.isSelected() ? 60 : 1),
-									checkBox_HB.isSelected(), (int) (spinner_HB.getValue()));
-							btn_multireq.setText(i + " Requests in a row");
-							btn_multireq.paint(btn_multireq.getGraphics());
-							try {
-								Thread.sleep(60 * 1000);
-							} catch (InterruptedException e) {
-								e.printStackTrace();
-							}
-						}
-						btn_multireq.setText(tmp + " Requests in a row");
-						btn_multireq.paint(btn_multireq.getGraphics());
-						enableButtons(true);
+		
+				spinner_multireq = new JSpinner();
+				spinner_multireq.setModel(new SpinnerNumberModel(new Integer(5), new Integer(1), null, new Integer(1)));
+				spinner_multireq.addChangeListener(new ChangeListener() {
+					public void stateChanged(ChangeEvent arg0) {
+						btn_multireq.setText((int) (spinner_multireq.getValue()) + " Requests in a row");
 					}
-				};
-				t.start();
-			}
-		});
-		panel_1.add(btn_multireq, "cell 17 9,growx");
-
-		chckbxKeepOldData = new JCheckBox("Keep Old Data");
-		chckbxKeepOldData.setSelected(true);
-		panel_1.add(chckbxKeepOldData, "cell 17 13");
-		panel_1.add(btnFilterButton, "cell 0 14 5 1,grow");
-
-		progressBar = new JProgressBar();
-		panel_1.add(progressBar, "cell 6 14 11 1,grow");
-
-		btnSendRequest = new JButton("Send Request and Filter");
-		panel_1.add(btnSendRequest, "cell 17 14,grow");
+				});
+				panel_1.add(spinner_multireq, "cell 12 9 5 1,growx");
+				
+						btn_multireq = new JButton((int) (spinner_multireq.getValue()) + " Requests in a row");
+						btn_multireq.addActionListener(new ActionListener() {
+							public void actionPerformed(ActionEvent arg0) {
+								enableButtons(false);
+								Thread t = new Thread() {
+									@Override
+									public void run() {
+										Main.api_key = textField_API.getText();
+										int tmp = (int) (spinner_multireq.getValue());
+										for (int i = tmp; i > 0; i--) {
+											Main.sendRequest();
+											Main.filterData(checkBox_CT.isSelected(), textField_CT.getText(),
+													chckbxMatchCase_CT.isSelected(), checkBox_CTL.isSelected(), textField_CTL.getText(),
+													chckbxMatchCase_CTL.isSelected(), checkBox_SL.isSelected(),
+													(int) (spinner_SL.getValue()) * (chckbxMinutesSL.isSelected() ? 60 : 1),
+													checkBox_TT.isSelected(),
+													(int) (spinner_TT.getValue()) * (checkBox_MinutesTT.isSelected() ? 60 : 1),
+													checkBox_HB.isSelected(), (int) (spinner_HB.getValue()));
+											btn_multireq.setText(i + " Requests in a row");
+											btn_multireq.paint(btn_multireq.getGraphics());
+											try {
+												Thread.sleep(60 * 1000);
+											} catch (InterruptedException e) {
+												e.printStackTrace();
+											}
+										}
+										btn_multireq.setText(tmp + " Requests in a row");
+										btn_multireq.paint(btn_multireq.getGraphics());
+										enableButtons(true);
+									}
+								};
+								t.start();
+							}
+						});
+						panel_1.add(btn_multireq, "cell 17 9,growx");
+		panel_1.add(rdbtnSecondsleftdec, "cell 0 10 5 1,growx");
+		
+				btnFilterButton = new JButton("Filter Collected Data");
+				btnFilterButton.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent arg0) {
+						Main.filterData(checkBox_CT.isSelected(), textField_CT.getText(), chckbxMatchCase_CT.isSelected(),
+								checkBox_CTL.isSelected(), textField_CTL.getText(), chckbxMatchCase_CTL.isSelected(),
+								checkBox_SL.isSelected(),
+								(int) (spinner_SL.getValue()) * (chckbxMinutesSL.isSelected() ? 60 : 1),
+								checkBox_TT.isSelected(),
+								(int) (spinner_TT.getValue()) * (checkBox_MinutesTT.isSelected() ? 60 : 1),
+								checkBox_HB.isSelected(), (int) (spinner_HB.getValue()));
+					}
+				});
+				
+						chckbxKeepOldData = new JCheckBox("Keep Old Data");
+						chckbxKeepOldData.setSelected(true);
+						panel_1.add(chckbxKeepOldData, "cell 17 10");
+				panel_1.add(btnFilterButton, "cell 0 11 5 1,grow");
+		
+				progressBar = new JProgressBar();
+				panel_1.add(progressBar, "cell 6 11 11 1,grow");
+		
+				btnSendRequest = new JButton("Send Request and Filter");
+				panel_1.add(btnSendRequest, "cell 17 11,grow");
 		btnSendRequest.addActionListener(new ActionListener() {
 
 			@Override
@@ -304,14 +320,10 @@ public class MainWindow extends JFrame {
 					@Override
 					public void run() {
 						Main.api_key = textField_API.getText();
-						Main.sendRequest(checkBox_CT.isSelected(), textField_CT.getText(), chckbxMatchCase.isSelected(),
-								checkBox_SL.isSelected(),
-								(int) (spinner_SL.getValue()) * (chckbxMinutesSL.isSelected() ? 60 : 1),
-								checkBox_TT.isSelected(),
-								(int) (spinner_TT.getValue()) * (checkBox_MinutesTT.isSelected() ? 60 : 1),
-								checkBox_HB.isSelected(), (int) (spinner_HB.getValue()));
-						Main.filterData(checkBox_CT.isSelected(), textField_CT.getText(), chckbxMatchCase.isSelected(),
-								checkBox_SL.isSelected(),
+						Main.sendRequest();
+						Main.filterData(checkBox_CT.isSelected(), textField_CT.getText(),
+								chckbxMatchCase_CT.isSelected(), checkBox_CTL.isSelected(), textField_CTL.getText(),
+								chckbxMatchCase_CTL.isSelected(), checkBox_SL.isSelected(),
 								(int) (spinner_SL.getValue()) * (chckbxMinutesSL.isSelected() ? 60 : 1),
 								checkBox_TT.isSelected(),
 								(int) (spinner_TT.getValue()) * (checkBox_MinutesTT.isSelected() ? 60 : 1),

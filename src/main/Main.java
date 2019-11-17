@@ -51,8 +51,7 @@ public class Main {
 		data = new ArrayList<Auction>();
 	}
 
-	public static void sendRequest(boolean filterCT, String CT, boolean matchCase, boolean filterSL, int SL,
-			boolean filterTT, int TT, boolean filterHB, int HB) {
+	public static void sendRequest() {
 		consoleOut("loading pages ");
 		if (!mw.getChckbxKeepOldData().isSelected())
 			data = new ArrayList<Auction>();
@@ -71,8 +70,8 @@ public class Main {
 		updateConsoleOut();
 	}
 
-	public static void filterData(boolean filterCT, String CT, boolean matchCase, boolean filterSL, int SL,
-			boolean filterTT, int TT, boolean filterHB, int HB) {
+	public static void filterData(boolean filterCT, String CT, boolean matchCaseCT, boolean filterCTL, String CTL,
+			boolean matchCaseCTL, boolean filterSL, int SL, boolean filterTT, int TT, boolean filterHB, int HB) {
 		// mw.getBtnFilterButton().setEnabled(false);
 		if (data.isEmpty()) {
 			consoleOut(" [ FAILURE ] No data collected yet!\n");
@@ -83,27 +82,31 @@ public class Main {
 		Comparator<Auction> comp = mw.getRdbtnSecondsleftdec().isSelected() ? new CompSecondsLeftDec()
 				: mw.getRdbtnHighestbidasc().isSelected() ? new CompHighestBidAsc() : null;
 		if (comp != null)
-			filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, filterHB, HB).sorted(comp)
-					.collect(Collectors.toCollection(ArrayList::new)).forEach(a -> consoleOut(a + "\n"));
+			filterStream(data.stream(), filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL, filterSL, SL, filterTT,
+					TT, filterHB, HB).sorted(comp).collect(Collectors.toCollection(ArrayList::new))
+							.forEach(a -> consoleOut(a + "\n"));
 		else
-			filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, filterHB, HB)
-					.collect(Collectors.toCollection(ArrayList::new)).forEach(a -> consoleOut(a + "\n"));
-		long count_buyable = (filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, false,
-				HB).sorted(new CompHighestNextBidAsc())).filter(a -> a.getSeconds_left() > buy_time).count();
-		long count_sold = filterStream(data.stream(), filterCT, CT, matchCase, true, 0, filterTT, TT, filterHB, HB)
-				.count();
-		long sum_sold = filterStream(data.stream(), filterCT, CT, matchCase, true, 0, filterTT, TT, filterHB, HB)
-				.mapToLong(a -> a.getHighest_bid_amount() / a.getItem_count()).sum();
+			filterStream(data.stream(), filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL, filterSL, SL, filterTT,
+					TT, filterHB, HB).collect(Collectors.toCollection(ArrayList::new))
+							.forEach(a -> consoleOut(a + "\n"));
+		long count_buyable = (filterStream(data.stream(), filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL,
+				filterSL, SL, filterTT, TT, false, HB).sorted(new CompHighestNextBidAsc()))
+						.filter(a -> a.getSeconds_left() > buy_time).count();
+		long count_sold = filterStream(data.stream(), filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL, true, 0,
+				filterTT, TT, filterHB, HB).count();
+		long sum_sold = filterStream(data.stream(), filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL, true, 0,
+				filterTT, TT, filterHB, HB).mapToLong(a -> a.getHighest_bid_amount() / a.getItem_count()).sum();
 		consoleOut("Buy Price\n");
 		if (count_buyable > 0) {
-			printCheapest(5, filterCT, CT, matchCase, filterSL, SL, filterTT, TT, filterHB, HB);
+			printCheapest(5, filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL, filterSL, SL, filterTT, TT,
+					filterHB, HB);
 		} else
 			consoleOut("No results!\n");
 		consoleOut("Sell Price\n");
 		if (count_sold > 0) {
 			consoleOut("Average: " + (sum_sold / count_sold) + " coins\n");
-			consoleOut("Maximum: "
-					+ (filterStream(data.stream(), filterCT, CT, matchCase, true, 0, filterTT, TT, filterHB, HB)
+			consoleOut("Maximum: " + (filterStream(data.stream(), filterCT, CT, matchCaseCT, filterCTL, CTL,
+					matchCaseCTL, true, 0, filterTT, TT, filterHB, HB)
 							.mapToLong(a -> a.getHighest_bid_amount() / a.getItem_count()).max().getAsLong())
 					+ " coins\n");
 		} else
@@ -111,14 +114,16 @@ public class Main {
 		updateConsoleOut();
 	}
 
-	private static void printCheapest(int topX, boolean filterCT, String CT, boolean matchCase, boolean filterSL,
-			int SL, boolean filterTT, int TT, boolean filterHB, int HB) {
-		long count = (filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, false, HB)
-				.sorted(new CompHighestNextBidAsc())).filter(a -> a.getSeconds_left() > buy_time).count();
+	private static void printCheapest(int topX, boolean filterCT, String CT, boolean matchCaseCT, boolean filterCTL,
+			String CTL, boolean matchCaseCTL, boolean filterSL, int SL, boolean filterTT, int TT, boolean filterHB,
+			int HB) {
+		long count = (filterStream(data.stream(), filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL, filterSL, SL,
+				filterTT, TT, false, HB).sorted(new CompHighestNextBidAsc()))
+						.filter(a -> a.getSeconds_left() > buy_time).count();
 		for (int i = 0; i < topX && i < count; i++) {
-			Auction min = (filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, false, HB)
-					.sorted(new CompHighestNextBidAsc())).filter(a -> a.getSeconds_left() > buy_time).skip(i).findFirst()
-							.get();
+			Auction min = (filterStream(data.stream(), filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL,
+					filterSL, SL, filterTT, TT, false, HB).sorted(new CompHighestNextBidAsc()))
+							.filter(a -> a.getSeconds_left() > buy_time).skip(i).findFirst().get();
 			String cheapestAuctioneer = getPlayerFromUUID(min.getAuctioneer());
 			consoleOut("Minimum " + (i + 1) + ": " + (long) (min.getNextBidAmount()) + " coins for "
 					+ min.getItem_count() + "x " + min.getItem_name() + " by " + cheapestAuctioneer + " "
@@ -126,10 +131,13 @@ public class Main {
 		}
 	}
 
-	private static Stream<Auction> filterStream(Stream<Auction> s, boolean filterCT, String CT, boolean matchCase,
-			boolean filterSL, int SL, boolean filterTT, int TT, boolean filterHB, int HB) {
-		return s.filter(a -> !filterCT || (matchCase ? a.getItem_name().equalsIgnoreCase(CT)
+	private static Stream<Auction> filterStream(Stream<Auction> s, boolean filterCT, String CT, boolean matchCaseCT,
+			boolean filterCTL, String CTL, boolean matchCaseCTL, boolean filterSL, int SL, boolean filterTT, int TT,
+			boolean filterHB, int HB) {
+		return s.filter(a -> !filterCT || (matchCaseCT ? a.getItem_name().equalsIgnoreCase(CT)
 				: a.getItem_name().toLowerCase().contains(CT.toLowerCase())))
+				.filter(a -> !filterCTL || (matchCaseCTL ? a.getItem_lore().equalsIgnoreCase(CTL)
+						: a.getItem_lore().toLowerCase().contains(CTL.toLowerCase())))
 				.filter(a -> !filterSL || a.getSeconds_left() < SL)
 				.filter(a -> !filterTT || a.getSeconds_on() < 5 * 60 || a.getSeconds_on() > TT)
 				.filter(a -> !filterHB || a.getHighest_bid_amount() > HB);
@@ -181,6 +189,7 @@ public class Main {
 		for (int i = 0; i < arr.length(); i++) {
 			JSONObject auction = arr.getJSONObject(i);
 			String item_name = auction.getString("item_name");
+			String item_lore = auction.getString("item_lore");
 			String item_bytes = auction.getString("item_bytes");
 			int item_count = itemCountFromItemBytes(item_bytes);
 			String uuid = auction.getString("uuid");
@@ -190,8 +199,9 @@ public class Main {
 			long highest_bid_amount = auction.getLong("highest_bid_amount");
 			long starting_bid = auction.getLong("starting_bid");
 			// TODO maybe add more detail to the auction objects
-			Auction addition = new Auction(uuid, auctioneer, start, end, timestamp, item_name, highest_bid_amount,
-					item_count, starting_bid);
+			// TODO add item lore and a way to filter the output by text contained by that
+			Auction addition = new Auction(uuid, auctioneer, start, end, timestamp, item_name, item_lore,
+					highest_bid_amount, item_count, starting_bid);
 			int tmp = data.indexOf(addition);
 			if (tmp < 0)
 				data.add(addition);
