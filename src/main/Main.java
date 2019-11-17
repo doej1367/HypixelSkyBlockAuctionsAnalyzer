@@ -95,7 +95,8 @@ public class Main {
 			consoleOut("Buy Price\n");
 			printCheapest(3, filterCT, CT, matchCase, filterSL, SL, filterTT, TT, filterHB, HB);
 			consoleOut("Sell Price\n");
-			// TODO calc these depending on the items that have negative time left / are sold
+			// TODO calc these depending on the items that have negative time left / are
+			// sold
 			consoleOut("Average: " + (sum / count) + " coins\n");
 			consoleOut("Maximum: "
 					+ (filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, filterHB, HB)
@@ -115,8 +116,9 @@ public class Main {
 					.sorted(new CompHighestNextBidAsc())).filter(a -> a.getSeconds_left() > 5).skip(i).findFirst()
 							.get();
 			String cheapestAuctioneer = getPlayerFromUUID(min.getAuctioneer());
-			consoleOut("Minimum " + (i + 1) + ": " + (long) (min.getNextBidAmount()) + " coins" + " by "
-					+ cheapestAuctioneer + " " + min.getSeconds_left() + "sec left" + "\n");
+			consoleOut("Minimum " + (i + 1) + ": " + (long) (min.getNextBidAmount()) + " coins for "
+					+ min.getItem_count() + "x " + min.getItem_name() + " by " + cheapestAuctioneer + " "
+					+ min.getSeconds_left() + "sec left" + "\n");
 		}
 	}
 
