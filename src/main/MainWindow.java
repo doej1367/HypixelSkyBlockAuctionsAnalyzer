@@ -171,10 +171,11 @@ public class MainWindow extends JFrame {
 		panel_1.add(checkBox_SL, "cell 5 4");
 
 		spinner_SL = new JSpinner();
-		spinner_SL.setModel(new SpinnerNumberModel(new Integer(10), new Integer(0), null, new Integer(1)));
+		spinner_SL.setModel(new SpinnerNumberModel(new Integer(1), new Integer(0), null, new Integer(1)));
 		panel_1.add(spinner_SL, "cell 6 4 6 1,growx");
 
 		chckbxMinutesSL = new JCheckBox("Minutes");
+		chckbxMinutesSL.setSelected(true);
 		chckbxMinutesSL.setToolTipText("");
 		panel_1.add(chckbxMinutesSL, "cell 12 4 5 1");
 
@@ -338,6 +339,7 @@ public class MainWindow extends JFrame {
 		btn_multireq.setEnabled(lock);
 		chckbxKeepOldData.setEnabled(lock);
 		btnSendRequest.setEnabled(lock);
+		btnFilterButton.setEnabled(lock);
 	}
 
 }

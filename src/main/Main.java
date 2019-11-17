@@ -72,10 +72,10 @@ public class Main {
 
 	public static void filterData(boolean filterCT, String CT, boolean matchCase, boolean filterSL, int SL,
 			boolean filterTT, int TT, boolean filterHB, int HB) {
-		mw.getBtnFilterButton().setEnabled(false);
+		//mw.getBtnFilterButton().setEnabled(false);
 		if (data.isEmpty()) {
 			consoleOut(" [ FAILURE ] No data collected yet!\n");
-			mw.getBtnFilterButton().setEnabled(true);
+			//mw.getBtnFilterButton().setEnabled(true);
 			return;
 		}
 		consoleOut("Filtering collected data ...\n");
@@ -92,6 +92,7 @@ public class Main {
 		long sum = filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, filterHB, HB)
 				.mapToLong(a -> a.getHighest_bid_amount() / a.getItem_count()).sum();
 		if (count > 0) {
+			printCheapest(3, filterCT, CT, matchCase, filterSL, SL, filterTT, TT, filterHB, HB);
 			consoleOut("Average: " + (sum / count) + " coins\n");
 			consoleOut("Maximum: "
 					+ (filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, filterHB, HB)
@@ -100,6 +101,19 @@ public class Main {
 		} else
 			consoleOut("No results!\n");
 		updateConsoleOut();
+	}
+
+	private static void printCheapest(int topX, boolean filterCT, String CT, boolean matchCase, boolean filterSL,
+			int SL, boolean filterTT, int TT, boolean filterHB, int HB) {
+		long count = (filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, filterHB,
+				HB).sorted(new CompHighestBidAsc())).filter(a -> a.getSeconds_left() > 5).count();
+		for (int i = 0; i < topX && i < count; i++) {
+			Auction min = (filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, filterHB,
+					HB).sorted(new CompHighestBidAsc())).filter(a -> a.getSeconds_left() > 5).skip(i).findFirst().get();
+			String cheapestAuctioneer = getPlayerFromUUID(min.getAuctioneer());
+			consoleOut("Minimum " + (i + 1) + ": " + min.getHighest_bid_amount() + " coins" + " by "
+					+ cheapestAuctioneer + " " + min.getSeconds_left() + "sec left" + "\n");
+		}
 	}
 
 	private static Stream<Auction> filterStream(Stream<Auction> s, boolean filterCT, String CT, boolean matchCase,
@@ -126,7 +140,7 @@ public class Main {
 				}
 				mw.getSp().getVerticalScrollBar().setValue(mw.getSp().getVerticalScrollBar().getMaximum());
 				mw.getSp().paint(mw.getSp().getGraphics());
-				mw.getBtnFilterButton().setEnabled(true);
+				//mw.getBtnFilterButton().setEnabled(true);
 			};
 		};
 		t.start();
@@ -149,7 +163,7 @@ public class Main {
 		JSONObject obj = new JSONObject(out);
 		long timestamp = obj.getLong("lastUpdated");
 		max_pages = obj.getInt("totalPages");
-		mw.getBtnFilterButton().setEnabled(false);
+		//mw.getBtnFilterButton().setEnabled(false);
 		for (Auction a : data) {
 			a.setTimestamp(timestamp);
 		}
@@ -160,13 +174,14 @@ public class Main {
 			String item_bytes = auction.getString("item_bytes");
 			int item_count = itemCountFromItemBytes(item_bytes);
 			String uuid = auction.getString("uuid");
+			String auctioneer = auction.getString("auctioneer");
 			long start = auction.getLong("start");
 			long end = auction.getLong("end");
 			long highest_bid_amount = auction.getLong("highest_bid_amount");
 			long starting_bid = auction.getLong("starting_bid");
 			// TODO maybe add more detail to the auction objects
-			Auction addition = new Auction(uuid, start, end, timestamp, item_name, highest_bid_amount, item_count,
-					starting_bid);
+			Auction addition = new Auction(uuid, auctioneer, start, end, timestamp, item_name, highest_bid_amount,
+					item_count, starting_bid);
 			int tmp = data.indexOf(addition);
 			if (tmp < 0)
 				data.add(addition);
@@ -176,7 +191,26 @@ public class Main {
 				data.get(tmp).setHighest_bid_amount(highest_bid_amount);
 			}
 		}
-		mw.getBtnFilterButton().setEnabled(true);
+		//mw.getBtnFilterButton().setEnabled(true);
+	}
+
+	private static String getPlayerFromUUID(String uuid) {
+		URL url;
+		String out = "";
+		try {
+			url = new URL("https://api.hypixel.net/player?key=" + api_key + "&uuid=" + uuid);
+			HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
+			out = getContent(con);
+		} catch (MalformedURLException e) {
+			consoleOut("[ FAILURE ] Some internet connection problem!\n");
+			e.printStackTrace();
+		} catch (IOException e) {
+			consoleOut("[ FAILURE ] Some internet connection problem!\n");
+			e.printStackTrace();
+		}
+		JSONObject obj = new JSONObject(out);
+		JSONObject player = obj.getJSONObject("player");
+		return player.getString("playername");
 	}
 
 	private static int itemCountFromItemBytes(String s) {

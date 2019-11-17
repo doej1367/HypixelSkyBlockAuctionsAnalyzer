@@ -2,6 +2,7 @@ package main;
 
 public class Auction {
 	private String uuid;
+	private String auctioneer;
 	private String item_name;
 	private long starting_bid;
 	private long highest_bid_amount;
@@ -10,10 +11,11 @@ public class Auction {
 	private long end;
 	private long timestamp;
 
-	public Auction(String uuid, long start, long end, long timestamp, String item_name, long highest_bid_amount,
+	public Auction(String uuid, String auctioneer, long start, long end, long timestamp, String item_name, long highest_bid_amount,
 			int item_count, long starting_bid) {
 		super();
 		this.setUuid(uuid);
+		this.setAuctioneer(auctioneer);
 		this.start = start;
 		this.end = end;
 		this.timestamp = timestamp;
@@ -24,7 +26,7 @@ public class Auction {
 	}
 
 	public long getSeconds_left() {
-		return ((end - timestamp) / 1000 / 60);
+		return ((end - timestamp) / 1000);
 	}
 
 	public long getStart() {
@@ -115,6 +117,14 @@ public class Auction {
 				+ addSpaces("" + getSeconds_left(), 5) + " sec, s=" + addSpaces("" + starting_bid, 10) + " coins, h="
 				+ addSpaces("" + highest_bid_amount, 10) + " coins, o=" + addSpaces("" + getSeconds_on() / 60, 10)
 				+ " min ]";
+	}
+
+	public String getAuctioneer() {
+		return auctioneer;
+	}
+
+	public void setAuctioneer(String auctioneer) {
+		this.auctioneer = auctioneer;
 	}
 
 }
