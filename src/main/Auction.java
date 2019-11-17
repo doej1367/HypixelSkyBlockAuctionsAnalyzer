@@ -28,6 +28,14 @@ public class Auction {
 	public long getSeconds_left() {
 		return ((end - timestamp) / 1000);
 	}
+	
+	public double getNextBidAmount() {
+		double b1 = getHighest_bid_amount();
+		if (b1 == 0)
+			return getStarting_bid();
+		else
+			return b1 * 1.15;
+	}
 
 	public long getStart() {
 		return start;

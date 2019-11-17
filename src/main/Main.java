@@ -105,13 +105,13 @@ public class Main {
 
 	private static void printCheapest(int topX, boolean filterCT, String CT, boolean matchCase, boolean filterSL,
 			int SL, boolean filterTT, int TT, boolean filterHB, int HB) {
-		long count = (filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, filterHB,
-				HB).sorted(new CompHighestBidAsc())).filter(a -> a.getSeconds_left() > 5).count();
+		long count = (filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, false,
+				HB).sorted(new CompHighestNextBidAsc())).filter(a -> a.getSeconds_left() > 5).count();
 		for (int i = 0; i < topX && i < count; i++) {
-			Auction min = (filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, filterHB,
-					HB).sorted(new CompHighestBidAsc())).filter(a -> a.getSeconds_left() > 5).skip(i).findFirst().get();
+			Auction min = (filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, false,
+					HB).sorted(new CompHighestNextBidAsc())).filter(a -> a.getSeconds_left() > 5).skip(i).findFirst().get();
 			String cheapestAuctioneer = getPlayerFromUUID(min.getAuctioneer());
-			consoleOut("Minimum " + (i + 1) + ": " + min.getHighest_bid_amount() + " coins" + " by "
+			consoleOut("Minimum " + (i + 1) + ": " + min.getNextBidAmount() + " coins" + " by "
 					+ cheapestAuctioneer + " " + min.getSeconds_left() + "sec left" + "\n");
 		}
 	}
