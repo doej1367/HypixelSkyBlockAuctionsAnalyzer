@@ -87,19 +87,22 @@ public class Main {
 		else
 			filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, filterHB, HB)
 					.collect(Collectors.toCollection(ArrayList::new)).forEach(a -> consoleOut(a + "\n"));
-		long count = filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, filterHB, HB)
+		long count_buyable = (filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, false,
+				HB).sorted(new CompHighestNextBidAsc())).filter(a -> a.getSeconds_left() > 5).count();
+		long count_sold = filterStream(data.stream(), filterCT, CT, matchCase, true, 0, filterTT, TT, filterHB, HB)
 				.count();
-		long sum = filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, filterHB, HB)
+		long sum_sold = filterStream(data.stream(), filterCT, CT, matchCase, true, 0, filterTT, TT, filterHB, HB)
 				.mapToLong(a -> a.getHighest_bid_amount() / a.getItem_count()).sum();
-		if (count > 0) {
-			consoleOut("Buy Price\n");
-			printCheapest(3, filterCT, CT, matchCase, filterSL, SL, filterTT, TT, filterHB, HB);
-			consoleOut("Sell Price\n");
-			// TODO calc these depending on the items that have negative time left / are
-			// sold
-			consoleOut("Average: " + (sum / count) + " coins\n");
+		consoleOut("Buy Price\n");
+		if (count_buyable > 0) {
+			printCheapest(5, filterCT, CT, matchCase, filterSL, SL, filterTT, TT, filterHB, HB);
+		} else
+			consoleOut("No results!\n");
+		consoleOut("Sell Price\n");
+		if (count_sold > 0) {
+			consoleOut("Average: " + (sum_sold / count_sold) + " coins\n");
 			consoleOut("Maximum: "
-					+ (filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, filterHB, HB)
+					+ (filterStream(data.stream(), filterCT, CT, matchCase, true, 0, filterTT, TT, filterHB, HB)
 							.mapToLong(a -> a.getHighest_bid_amount() / a.getItem_count()).max().getAsLong())
 					+ " coins\n");
 		} else
