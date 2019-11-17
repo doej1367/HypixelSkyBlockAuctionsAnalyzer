@@ -95,6 +95,7 @@ public class Main {
 			consoleOut("Buy Price\n");
 			printCheapest(3, filterCT, CT, matchCase, filterSL, SL, filterTT, TT, filterHB, HB);
 			consoleOut("Sell Price\n");
+			// TODO calc these depending on the items that have negative time left / are sold
 			consoleOut("Average: " + (sum / count) + " coins\n");
 			consoleOut("Maximum: "
 					+ (filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, filterHB, HB)
