@@ -25,6 +25,7 @@ public class Main {
 	public static int max_pages = 1;
 	public static ArrayList<Auction> data;
 	public static MainWindow mw;
+	public static int buy_time = 10;
 
 	public static void main(String[] args) {
 		try {
@@ -88,7 +89,7 @@ public class Main {
 			filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, filterHB, HB)
 					.collect(Collectors.toCollection(ArrayList::new)).forEach(a -> consoleOut(a + "\n"));
 		long count_buyable = (filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, false,
-				HB).sorted(new CompHighestNextBidAsc())).filter(a -> a.getSeconds_left() > 5).count();
+				HB).sorted(new CompHighestNextBidAsc())).filter(a -> a.getSeconds_left() > buy_time).count();
 		long count_sold = filterStream(data.stream(), filterCT, CT, matchCase, true, 0, filterTT, TT, filterHB, HB)
 				.count();
 		long sum_sold = filterStream(data.stream(), filterCT, CT, matchCase, true, 0, filterTT, TT, filterHB, HB)
@@ -113,10 +114,10 @@ public class Main {
 	private static void printCheapest(int topX, boolean filterCT, String CT, boolean matchCase, boolean filterSL,
 			int SL, boolean filterTT, int TT, boolean filterHB, int HB) {
 		long count = (filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, false, HB)
-				.sorted(new CompHighestNextBidAsc())).filter(a -> a.getSeconds_left() > 5).count();
+				.sorted(new CompHighestNextBidAsc())).filter(a -> a.getSeconds_left() > buy_time).count();
 		for (int i = 0; i < topX && i < count; i++) {
 			Auction min = (filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, false, HB)
-					.sorted(new CompHighestNextBidAsc())).filter(a -> a.getSeconds_left() > 5).skip(i).findFirst()
+					.sorted(new CompHighestNextBidAsc())).filter(a -> a.getSeconds_left() > buy_time).skip(i).findFirst()
 							.get();
 			String cheapestAuctioneer = getPlayerFromUUID(min.getAuctioneer());
 			consoleOut("Minimum " + (i + 1) + ": " + (long) (min.getNextBidAmount()) + " coins for "
