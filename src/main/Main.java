@@ -72,10 +72,10 @@ public class Main {
 
 	public static void filterData(boolean filterCT, String CT, boolean matchCase, boolean filterSL, int SL,
 			boolean filterTT, int TT, boolean filterHB, int HB) {
-		//mw.getBtnFilterButton().setEnabled(false);
+		// mw.getBtnFilterButton().setEnabled(false);
 		if (data.isEmpty()) {
 			consoleOut(" [ FAILURE ] No data collected yet!\n");
-			//mw.getBtnFilterButton().setEnabled(true);
+			// mw.getBtnFilterButton().setEnabled(true);
 			return;
 		}
 		consoleOut("Filtering collected data ...\n");
@@ -92,7 +92,9 @@ public class Main {
 		long sum = filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, filterHB, HB)
 				.mapToLong(a -> a.getHighest_bid_amount() / a.getItem_count()).sum();
 		if (count > 0) {
+			consoleOut("Buy Price");
 			printCheapest(3, filterCT, CT, matchCase, filterSL, SL, filterTT, TT, filterHB, HB);
+			consoleOut("Sell Price");
 			consoleOut("Average: " + (sum / count) + " coins\n");
 			consoleOut("Maximum: "
 					+ (filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, filterHB, HB)
@@ -105,13 +107,14 @@ public class Main {
 
 	private static void printCheapest(int topX, boolean filterCT, String CT, boolean matchCase, boolean filterSL,
 			int SL, boolean filterTT, int TT, boolean filterHB, int HB) {
-		long count = (filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, false,
-				HB).sorted(new CompHighestNextBidAsc())).filter(a -> a.getSeconds_left() > 5).count();
+		long count = (filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, false, HB)
+				.sorted(new CompHighestNextBidAsc())).filter(a -> a.getSeconds_left() > 5).count();
 		for (int i = 0; i < topX && i < count; i++) {
-			Auction min = (filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, false,
-					HB).sorted(new CompHighestNextBidAsc())).filter(a -> a.getSeconds_left() > 5).skip(i).findFirst().get();
+			Auction min = (filterStream(data.stream(), filterCT, CT, matchCase, filterSL, SL, filterTT, TT, false, HB)
+					.sorted(new CompHighestNextBidAsc())).filter(a -> a.getSeconds_left() > 5).skip(i).findFirst()
+							.get();
 			String cheapestAuctioneer = getPlayerFromUUID(min.getAuctioneer());
-			consoleOut("Minimum " + (i + 1) + ": " + min.getNextBidAmount() + " coins" + " by "
+			consoleOut("Minimum " + (i + 1) + ": " + (long) (min.getNextBidAmount()) + " coins" + " by "
 					+ cheapestAuctioneer + " " + min.getSeconds_left() + "sec left" + "\n");
 		}
 	}
@@ -140,7 +143,7 @@ public class Main {
 				}
 				mw.getSp().getVerticalScrollBar().setValue(mw.getSp().getVerticalScrollBar().getMaximum());
 				mw.getSp().paint(mw.getSp().getGraphics());
-				//mw.getBtnFilterButton().setEnabled(true);
+				// mw.getBtnFilterButton().setEnabled(true);
 			};
 		};
 		t.start();
@@ -163,7 +166,7 @@ public class Main {
 		JSONObject obj = new JSONObject(out);
 		long timestamp = obj.getLong("lastUpdated");
 		max_pages = obj.getInt("totalPages");
-		//mw.getBtnFilterButton().setEnabled(false);
+		// mw.getBtnFilterButton().setEnabled(false);
 		for (Auction a : data) {
 			a.setTimestamp(timestamp);
 		}
@@ -191,7 +194,7 @@ public class Main {
 				data.get(tmp).setHighest_bid_amount(highest_bid_amount);
 			}
 		}
-		//mw.getBtnFilterButton().setEnabled(true);
+		// mw.getBtnFilterButton().setEnabled(true);
 	}
 
 	private static String getPlayerFromUUID(String uuid) {
