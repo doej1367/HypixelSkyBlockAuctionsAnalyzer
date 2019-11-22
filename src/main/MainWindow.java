@@ -177,8 +177,8 @@ public class MainWindow extends JFrame {
 		textField_CTL.setColumns(10);
 		panel_1.add(textField_CTL, "cell 6 4 6 1,growx");
 
-		chckbxMatchCase_CTL = new JCheckBox("Match Case");
-		chckbxMatchCase_CTL.setEnabled(false);
+		chckbxMatchCase_CTL = new JCheckBox("Case Sensitive");
+		chckbxMatchCase_CTL.setSelected(true);
 		chckbxMatchCase_CTL.setToolTipText("");
 		panel_1.add(chckbxMatchCase_CTL, "cell 12 4 5 1");
 

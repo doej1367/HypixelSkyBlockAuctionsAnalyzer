@@ -106,17 +106,16 @@ public class Main {
 			consoleOut("No results!\n");
 		consoleOut("Sell Price [analyzed " + count_sold + " sold auctions]\n");
 		if (count_sold > 0) {
-			consoleOut("Minimum: "
-					+ (filterStream(data.stream(), filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL, true, 0,
-							filterTT, TT, true, Math.max(1, HB))
-									.mapToLong(a -> a.getHighest_bid_amount() / a.getItem_count()).min().getAsLong())
-					+ " coins\n");
-			consoleOut("Average: " + (sum_sold / count_sold) + " coins\n");
-			consoleOut("Maximum: "
-					+ (filterStream(data.stream(), filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL, true, 0,
-							filterTT, TT, true, Math.max(1, HB))
-									.mapToLong(a -> a.getHighest_bid_amount() / a.getItem_count()).max().getAsLong())
-					+ " coins\n");
+			long min = (filterStream(data.stream(), filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL, true, 0,
+					filterTT, TT, true, Math.max(1, HB)).mapToLong(a -> a.getHighest_bid_amount() / a.getItem_count())
+							.min().getAsLong());
+			consoleOut("Minimum: " + addCommas(min) + " coins (x 64 = " + addCommas(min * 64) + " coins)\n");
+			long average = (sum_sold / count_sold);
+			consoleOut("Average: " + addCommas(average) + " coins (x 64 = " + addCommas(average * 64) + " coins)\n");
+			long max = (filterStream(data.stream(), filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL, true, 0,
+					filterTT, TT, true, Math.max(1, HB)).mapToLong(a -> a.getHighest_bid_amount() / a.getItem_count())
+							.max().getAsLong());
+			consoleOut("Maximum: " + addCommas(max) + " coins (x 64 = " + addCommas(max * 64) + " coins)\n");
 		} else
 			consoleOut("No results!\n");
 		updateConsoleOut();
@@ -133,7 +132,7 @@ public class Main {
 					filterSL, SL, filterTT, TT, false, HB).sorted(new CompHighestNextBidAsc()))
 							.filter(a -> a.getSeconds_left() > buy_time).skip(i).findFirst().get();
 			String cheapestAuctioneer = getPlayerFromUUID(min.getAuctioneer());
-			consoleOut("Minimum " + (i + 1) + ": " + (long) (min.getNextBidAmount()) + " coins for "
+			consoleOut("Minimum " + (i + 1) + ": " + addCommas(min.getNextBidAmount()) + " coins for "
 					+ min.getItem_count() + "x " + min.getItem_name() + " by " + cheapestAuctioneer + " "
 					+ min.getSeconds_left() + "sec left" + "\n");
 		}
@@ -144,7 +143,7 @@ public class Main {
 			boolean filterHB, int HB) {
 		return s.filter(a -> !filterCT || (matchCaseCT ? a.getItem_name().equalsIgnoreCase(CT)
 				: a.getItem_name().toLowerCase().contains(CT.toLowerCase())))
-				.filter(a -> !filterCTL || (matchCaseCTL ? a.getItem_lore().equalsIgnoreCase(CTL)
+				.filter(a -> !filterCTL || (matchCaseCTL ? a.getItem_lore().contains(CTL)
 						: a.getItem_lore().toLowerCase().contains(CTL.toLowerCase())))
 				.filter(a -> !filterSL || a.getSeconds_left() < SL)
 				.filter(a -> !filterTT || a.getSeconds_on() < 5 * 60 || a.getSeconds_on() > TT)
@@ -153,7 +152,17 @@ public class Main {
 
 	private static void consoleOut(String s) {
 		mw.getConsoleOut().append(s);
+	}
 
+	private static String addCommas(long l) {
+		String tmp = "" + l;
+		String res = "";
+		for (int i = 0; i < tmp.length(); i++)
+			if (i % 3 == 0 && i != 0)
+				res = (tmp.charAt(tmp.length() - 1 - i) + ",").concat(res);
+			else
+				res = (tmp.charAt(tmp.length() - 1 - i) + "").concat(res);
+		return res;
 	}
 
 	private static void updateConsoleOut() {
