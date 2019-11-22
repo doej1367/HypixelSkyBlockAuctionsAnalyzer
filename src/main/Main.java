@@ -125,7 +125,6 @@ public class Main {
 					false, 0, true, Math.max(1, HB)).count();
 			consoleOut("Best Selling on average [analyzed all " + countTotal_sold + " sold auctions]\n");
 			if (countTotal_sold > 0) {
-				// TODO
 				Set<String> set = data.stream().map(a -> a.getItem_name()).distinct().collect(Collectors.toSet());
 				ArrayList<SoldItemAveragePrice> list = new ArrayList<>();
 				for (String s : set) {
@@ -135,23 +134,22 @@ public class Main {
 						long average_sum_sold = filterStream(data.stream(), true, s, true, false, "", matchCaseCTL,
 								true, 0, false, 0, true, Math.max(1, HB))
 										.mapToLong(a -> a.getHighest_bid_amount() / a.getItem_count()).sum();
-						long average_total_sum_sold = filterStream(data.stream(), true, s, true, false, "", matchCaseCTL,
-								true, 0, false, 0, true, Math.max(1, HB))
+						long average_total_sum_sold = filterStream(data.stream(), true, s, true, false, "",
+								matchCaseCTL, true, 0, false, 0, true, Math.max(1, HB))
 										.mapToLong(a -> a.getItem_count()).sum();
-						list.add(
-								new SoldItemAveragePrice(s, average_sum_sold / average_count_sold, average_total_sum_sold));
+						list.add(new SoldItemAveragePrice(s, average_sum_sold / average_count_sold,
+								average_total_sum_sold));
 					}
 				}
-				// TODO sorting doesn't work somehow
 				List<SoldItemAveragePrice> list_sorted = list.stream().sorted().collect(Collectors.toList());
 				int count = 0;
 				for (SoldItemAveragePrice e : list_sorted) {
-					if (e.getPrice() <= 0)
+					if (e.getPrice() <= 0 || e.getCount() < (int) mw.getSpinnerMinSold().getValue())
 						continue;
 					consoleOut("Best Average " + (count + 1) + ": " + e.getItem_name() + " with "
-							+ addCommas(e.getPrice()) + " coins, ("+e.getCount()+" items sold)\n");
+							+ addCommas(e.getPrice()) + " coins, (" + e.getCount() + " items sold)\n");
 					count++;
-					if (count > 5)
+					if (count >= (int) mw.getSpinnerTop().getValue())
 						break;
 				}
 			} else

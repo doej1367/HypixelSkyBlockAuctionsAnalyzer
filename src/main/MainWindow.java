@@ -77,6 +77,10 @@ public class MainWindow extends JFrame {
 	private JTextField textField_CTL;
 	private JCheckBox chckbxMatchCase_CTL;
 	private JCheckBox chckbxOpMode;
+	private JSpinner spinnerTop;
+	private JLabel label_1;
+	private JLabel label_2;
+	private JSpinner spinnerMinSold;
 
 	public JProgressBar getProgressBar() {
 		return progressBar;
@@ -122,8 +126,7 @@ public class MainWindow extends JFrame {
 
 		JPanel panel_1 = new JPanel();
 		contentPane.add(panel_1, BorderLayout.NORTH);
-		panel_1.setLayout(new MigLayout("fill", "[][][][][22.00][][30.00,grow][30.00,grow][][][][][][][][][][]",
-				"[][][][][][][][][][][][][][]"));
+		panel_1.setLayout(new MigLayout("fill", "[][][][][22.00][][102.00,grow][26.00][][40px:n][][40px:n][][][][][][]", "[][][][][][][][][][][][][][]"));
 
 		JLabel lblNewLabel = new JLabel("API key:");
 		panel_1.add(lblNewLabel, "cell 0 1 5 1,growx");
@@ -305,9 +308,23 @@ public class MainWindow extends JFrame {
 						checkBox_HB.isSelected(), (int) (spinner_HB.getValue()));
 			}
 		});
-
-		chckbxOpMode = new JCheckBox("OP Mode (Takes Long)");
-		panel_1.add(chckbxOpMode, "cell 12 10 5 1");
+				
+				label_1 = new JLabel("Top ");
+				panel_1.add(label_1, "cell 8 10");
+				
+				spinnerTop = new JSpinner();
+				spinnerTop.setModel(new SpinnerNumberModel(new Integer(10), new Integer(0), null, new Integer(1)));
+				panel_1.add(spinnerTop, "cell 9 10,growx");
+				
+				label_2 = new JLabel("Min Sold ");
+				panel_1.add(label_2, "cell 10 10");
+				
+				spinnerMinSold = new JSpinner();
+				spinnerMinSold.setModel(new SpinnerNumberModel(new Integer(3), new Integer(1), null, new Integer(1)));
+				panel_1.add(spinnerMinSold, "cell 11 10,growx");
+		
+				chckbxOpMode = new JCheckBox("OP Mode (Takes Long)");
+				panel_1.add(chckbxOpMode, "cell 12 10 5 1");
 
 		chckbxKeepOldData = new JCheckBox("Keep Old Data");
 		chckbxKeepOldData.setSelected(true);
@@ -343,6 +360,14 @@ public class MainWindow extends JFrame {
 				t.start();
 			}
 		});
+	}
+
+	public JSpinner getSpinnerMinSold() {
+		return spinnerMinSold;
+	}
+
+	public JSpinner getSpinnerTop() {
+		return spinnerTop;
 	}
 
 	public JCheckBox getChckbxOpMode() {
