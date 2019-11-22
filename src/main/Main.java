@@ -12,6 +12,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
@@ -93,17 +95,17 @@ public class Main {
 		long count_buyable = (filterStream(data.stream(), filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL,
 				filterSL, SL, filterTT, TT, filterHB, HB).sorted(new CompHighestNextBidAsc()))
 						.filter(a -> a.getSeconds_left() > buy_time).count();
-		long count_sold = filterStream(data.stream(), filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL, true, 0,
-				filterTT, TT, true, Math.max(1, HB)).count();
-		long sum_sold = filterStream(data.stream(), filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL, true, 0,
-				filterTT, TT, true, Math.max(1, HB)).mapToLong(a -> a.getHighest_bid_amount() / a.getItem_count())
-						.sum();
 		consoleOut("Buy Price [analyzed " + count_buyable + " bidable auctions]\n");
 		if (count_buyable > 0) {
 			printCheapest(5, filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL, filterSL, SL, filterTT, TT,
 					filterHB, HB);
 		} else
 			consoleOut("No results!\n");
+		long count_sold = filterStream(data.stream(), filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL, true, 0,
+				filterTT, TT, true, Math.max(1, HB)).count();
+		long sum_sold = filterStream(data.stream(), filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL, true, 0,
+				filterTT, TT, true, Math.max(1, HB)).mapToLong(a -> a.getHighest_bid_amount() / a.getItem_count())
+						.sum();
 		consoleOut("Sell Price [analyzed " + count_sold + " sold auctions]\n");
 		if (count_sold > 0) {
 			long min = (filterStream(data.stream(), filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL, true, 0,
@@ -118,6 +120,43 @@ public class Main {
 			consoleOut("Maximum: " + addCommas(max) + " coins (x 64 = " + addCommas(max * 64) + " coins)\n");
 		} else
 			consoleOut("No results!\n");
+		if (mw.getChckbxOpMode().isSelected()) {
+			long countTotal_sold = filterStream(data.stream(), false, "", matchCaseCT, false, "", matchCaseCTL, true, 0,
+					false, 0, true, Math.max(1, HB)).count();
+			consoleOut("Best Selling on average [analyzed all " + countTotal_sold + " sold auctions]\n");
+			if (countTotal_sold > 0) {
+				// TODO
+				Set<String> set = data.stream().map(a -> a.getItem_name()).distinct().collect(Collectors.toSet());
+				ArrayList<SoldItemAveragePrice> list = new ArrayList<>();
+				for (String s : set) {
+					long average_count_sold = filterStream(data.stream(), true, s, true, false, "", matchCaseCTL, true,
+							0, false, 0, true, Math.max(1, HB)).count();
+					if (average_count_sold > 0) {
+						long average_sum_sold = filterStream(data.stream(), true, s, true, false, "", matchCaseCTL,
+								true, 0, false, 0, true, Math.max(1, HB))
+										.mapToLong(a -> a.getHighest_bid_amount() / a.getItem_count()).sum();
+						long average_total_sum_sold = filterStream(data.stream(), true, s, true, false, "", matchCaseCTL,
+								true, 0, false, 0, true, Math.max(1, HB))
+										.mapToLong(a -> a.getItem_count()).sum();
+						list.add(
+								new SoldItemAveragePrice(s, average_sum_sold / average_count_sold, average_total_sum_sold));
+					}
+				}
+				// TODO sorting doesn't work somehow
+				List<SoldItemAveragePrice> list_sorted = list.stream().sorted().collect(Collectors.toList());
+				int count = 0;
+				for (SoldItemAveragePrice e : list_sorted) {
+					if (e.getPrice() <= 0)
+						continue;
+					consoleOut("Best Average " + (count + 1) + ": " + e.getItem_name() + " with "
+							+ addCommas(e.getPrice()) + " coins, ("+e.getCount()+" items sold)\n");
+					count++;
+					if (count > 5)
+						break;
+				}
+			} else
+				consoleOut("No results!\n");
+		}
 		updateConsoleOut();
 	}
 
