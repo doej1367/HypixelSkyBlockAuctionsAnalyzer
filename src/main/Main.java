@@ -98,14 +98,19 @@ public class Main {
 		long sum_sold = filterStream(data.stream(), filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL, true, 0,
 				filterTT, TT, true, Math.max(1, HB)).mapToLong(a -> a.getHighest_bid_amount() / a.getItem_count())
 						.sum();
-		consoleOut("Buy Price\n");
+		consoleOut("Buy Price [analyzed " + count_buyable + " bidable auctions]\n");
 		if (count_buyable > 0) {
 			printCheapest(5, filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL, filterSL, SL, filterTT, TT,
 					filterHB, HB);
 		} else
 			consoleOut("No results!\n");
-		consoleOut("Sell Price\n");
+		consoleOut("Sell Price [analyzed " + count_sold + " sold auctions]\n");
 		if (count_sold > 0) {
+			consoleOut("Minimum: "
+					+ (filterStream(data.stream(), filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL, true, 0,
+							filterTT, TT, true, Math.max(1, HB))
+									.mapToLong(a -> a.getHighest_bid_amount() / a.getItem_count()).min().getAsLong())
+					+ " coins\n");
 			consoleOut("Average: " + (sum_sold / count_sold) + " coins\n");
 			consoleOut("Maximum: "
 					+ (filterStream(data.stream(), filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL, true, 0,
