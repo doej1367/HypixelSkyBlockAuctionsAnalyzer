@@ -72,6 +72,7 @@ public class Main {
 
 	public static void filterData(boolean filterCT, String CT, boolean matchCaseCT, boolean filterCTL, String CTL,
 			boolean matchCaseCTL, boolean filterSL, int SL, boolean filterTT, int TT, boolean filterHB, int HB) {
+		// TODO Maybe clear out the console first?
 		// mw.getBtnFilterButton().setEnabled(false);
 		if (data.isEmpty()) {
 			consoleOut(" [ FAILURE ] No data collected yet!\n");
@@ -180,40 +181,44 @@ public class Main {
 			consoleOut("[ FAILURE ] Some internet connection problem!\n");
 			e.printStackTrace();
 		}
-		JSONObject obj = new JSONObject(out);
-		long timestamp = obj.getLong("lastUpdated");
-		max_pages = obj.getInt("totalPages");
-		// mw.getBtnFilterButton().setEnabled(false);
-		for (Auction a : data) {
-			a.setTimestamp(timestamp);
-		}
-		JSONArray arr = obj.getJSONArray("auctions");
-		for (int i = 0; i < arr.length(); i++) {
-			JSONObject auction = arr.getJSONObject(i);
-			String item_name = auction.getString("item_name");
-			String item_lore = auction.getString("item_lore");
-			String item_bytes = auction.getString("item_bytes");
-			int item_count = itemCountFromItemBytes(item_bytes);
-			String uuid = auction.getString("uuid");
-			String auctioneer = auction.getString("auctioneer");
-			long start = auction.getLong("start");
-			long end = auction.getLong("end");
-			long highest_bid_amount = auction.getLong("highest_bid_amount");
-			long starting_bid = auction.getLong("starting_bid");
-			// TODO maybe add more detail to the auction objects
-			// TODO add item lore and a way to filter the output by text contained by that
-			Auction addition = new Auction(uuid, auctioneer, start, end, timestamp, item_name, item_lore,
-					highest_bid_amount, item_count, starting_bid);
-			int tmp = data.indexOf(addition);
-			if (tmp < 0)
-				data.add(addition);
-			else {
-				data.get(tmp).setTimestamp(timestamp);
-				data.get(tmp).setEnd(end);
-				data.get(tmp).setHighest_bid_amount(highest_bid_amount);
+		try {
+			JSONObject obj = new JSONObject(out);
+			long timestamp = obj.getLong("lastUpdated");
+			max_pages = obj.getInt("totalPages");
+			// mw.getBtnFilterButton().setEnabled(false);
+			for (Auction a : data) {
+				a.setTimestamp(timestamp);
 			}
+			JSONArray arr = obj.getJSONArray("auctions");
+			for (int i = 0; i < arr.length(); i++) {
+				JSONObject auction = arr.getJSONObject(i);
+				String item_name = auction.getString("item_name");
+				String item_lore = auction.getString("item_lore");
+				String item_bytes = auction.getString("item_bytes");
+				int item_count = itemCountFromItemBytes(item_bytes);
+				String uuid = auction.getString("uuid");
+				String auctioneer = auction.getString("auctioneer");
+				long start = auction.getLong("start");
+				long end = auction.getLong("end");
+				long highest_bid_amount = auction.getLong("highest_bid_amount");
+				long starting_bid = auction.getLong("starting_bid");
+				// TODO maybe add more detail to the auction objects
+				// TODO add item lore and a way to filter the output by text contained by that
+				Auction addition = new Auction(uuid, auctioneer, start, end, timestamp, item_name, item_lore,
+						highest_bid_amount, item_count, starting_bid);
+				int tmp = data.indexOf(addition);
+				if (tmp < 0)
+					data.add(addition);
+				else {
+					data.get(tmp).setTimestamp(timestamp);
+					data.get(tmp).setEnd(end);
+					data.get(tmp).setHighest_bid_amount(highest_bid_amount);
+				}
+			}
+			// mw.getBtnFilterButton().setEnabled(true);
+		} catch (JSONException e) {
+			e.printStackTrace();
 		}
-		// mw.getBtnFilterButton().setEnabled(true);
 	}
 
 	private static String getPlayerFromUUID(String uuid) {
@@ -230,9 +235,14 @@ public class Main {
 			consoleOut("[ FAILURE ] Some internet connection problem!\n");
 			e.printStackTrace();
 		}
-		JSONObject obj = new JSONObject(out);
-		JSONObject player = obj.getJSONObject("player");
-		return player.getString("playername");
+		try {
+			JSONObject obj = new JSONObject(out);
+			JSONObject player = obj.getJSONObject("player");
+			return player.getString("playername");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return "<request failed>";
 	}
 
 	private static int itemCountFromItemBytes(String s) {
