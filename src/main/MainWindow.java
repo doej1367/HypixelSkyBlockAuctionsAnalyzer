@@ -190,7 +190,7 @@ public class MainWindow extends JFrame {
 		panel_1.add(checkBox_SL, "cell 5 5");
 
 		spinner_SL = new JSpinner();
-		spinner_SL.setModel(new SpinnerNumberModel(new Integer(1), new Integer(0), null, new Integer(1)));
+		spinner_SL.setModel(new SpinnerNumberModel(new Integer(10), new Integer(0), null, new Integer(1)));
 		panel_1.add(spinner_SL, "cell 6 5 6 1,growx");
 
 		chckbxMinutesSL = new JCheckBox("Minutes");
@@ -243,7 +243,7 @@ public class MainWindow extends JFrame {
 		});
 		
 				spinner_multireq = new JSpinner();
-				spinner_multireq.setModel(new SpinnerNumberModel(new Integer(5), new Integer(1), null, new Integer(1)));
+				spinner_multireq.setModel(new SpinnerNumberModel(new Integer(10), new Integer(1), null, new Integer(1)));
 				spinner_multireq.addChangeListener(new ChangeListener() {
 					public void stateChanged(ChangeEvent arg0) {
 						btn_multireq.setText((int) (spinner_multireq.getValue()) + " Requests in a row");
