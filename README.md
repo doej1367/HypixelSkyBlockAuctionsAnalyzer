@@ -1,4 +1,7 @@
 # HypixelSkyBlockAuctionsAnalyzer (HySbAa)
+
+First of all: I used the following lib https://github.com/stleary/JSON-java
+
 This is few-hours-project to create something that can tell the average price of an auction item
 from the auction house on Hypixel Skyblock. 
 Not one of my most beautiful projects but it is working well for the little time i had for it, so there you go.
