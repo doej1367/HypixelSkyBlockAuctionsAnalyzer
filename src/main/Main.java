@@ -2,7 +2,6 @@ package main;
 
 import java.awt.EventQueue;
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -10,13 +9,8 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Comparator;
-import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.zip.GZIPInputStream;
 
 import javax.net.ssl.HttpsURLConnection;
 import org.json.*;
@@ -24,10 +18,25 @@ import org.json.*;
 public class Main {
 
 	public static String api_key = "";
+	public static String ign = "";
 	public static int max_pages = 1;
-	public static ArrayList<Auction> data;
+	public static ArrayList<Player> players;
 	public static MainWindow mw;
-	public static int buy_time = 10;
+	private static Profile currentProfile;
+	private static Long kills_start = 0L;
+	private static Long last_updated = 0L;
+	private static Thread t1 = new Thread() {
+		@Override
+		public void run() {
+			while (true) {
+				mw.getLblLabel_lastUpdate().setText("" + (System.currentTimeMillis() - (long) last_updated) / 1000);
+				try {
+					Thread.sleep(1000L);
+				} catch (InterruptedException e) {
+				}
+			}
+		};
+	};
 
 	public static void main(String[] args) {
 		try {
@@ -36,6 +45,7 @@ public class Main {
 				config.createNewFile();
 			BufferedReader br = new BufferedReader(new FileReader(config));
 			api_key = "" + br.readLine();
+			ign = br.readLine();
 			br.close();
 		} catch (IOException e1) {
 			e1.printStackTrace();
@@ -50,156 +60,81 @@ public class Main {
 				}
 			}
 		});
-		data = new ArrayList<Auction>();
+		players = new ArrayList<>();
+	}
+
+	public static void loadProfiles() {
+		consoleOut("loading profiles ");
+		URL url;
+		String out = "";
+		String player_name = mw.getTextField_IGN().getText();
+		try {
+			url = new URL("https://api.hypixel.net/player?key=" + api_key + "&name=" + player_name);
+			HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
+			out = getContent(con);
+		} catch (MalformedURLException e) {
+			consoleOut("[ FAILURE ] Some internet connection problem!\n");
+			e.printStackTrace();
+		} catch (IOException e) {
+			consoleOut("[ FAILURE ] Some internet connection problem!\n");
+			e.printStackTrace();
+		}
+		boolean success = false;
+		try {
+			JSONObject obj = new JSONObject(out);
+			String uuid = obj.getJSONObject("player").getString("uuid");
+			Player p = new Player(player_name, uuid);
+			if (!players.contains(p)) {
+				players.add(p);
+				JSONObject player_profiles = obj.getJSONObject("player").getJSONObject("stats")
+						.getJSONObject("SkyBlock").getJSONObject("profiles");
+				mw.getComboBox_profile().removeAll();
+				for (String profile_id : player_profiles.keySet()) {
+					JSONObject profile = player_profiles.getJSONObject(profile_id);
+					String id = profile.getString("profile_id");
+					String name = profile.getString("cute_name");
+					if (!p.contains(new Profile(id, name))) {
+						p.addProfile(new Profile(id, name));
+						mw.getComboBox_profile().addItem(name);
+					}
+				}
+			}
+			success = true;
+		} catch (JSONException e) {
+			e.printStackTrace();
+			consoleOut(" [ FAILURE ] JSONException\n");
+		}
+		if (success) {
+			setCurrentProfile();
+			consoleOut(" [ OK ]\n");
+		}
+		updateConsoleOut();
+	}
+
+	public static void setCurrentProfile() {
+		String name = (String) mw.getComboBox_profile().getSelectedItem();
+		Player currentPlayer = null;
+		for (Player p : players)
+			if (p.getIgn().equalsIgnoreCase(mw.getTextField_IGN().getText()))
+				currentPlayer = p;
+		for (Profile p : currentPlayer.getProfiles())
+			if (p.getCute_name().equalsIgnoreCase(name))
+				currentProfile = p;
 	}
 
 	public static void sendRequest() {
-		consoleOut("loading pages ");
-		if (!mw.getChckbxKeepOldData().isSelected())
-			data = new ArrayList<Auction>();
-		mw.getProgressBar().setStringPainted(true);
-		mw.getProgressBar().paint(mw.getProgressBar().getGraphics());
-		for (int i = 0; i < max_pages; i++) {
-			loadPage(i);
-			mw.getProgressBar().setMaximum(max_pages);
-			mw.getProgressBar().setValue(i + 1);
-			mw.getProgressBar().paint(mw.getProgressBar().getGraphics());
-		}
-		mw.getProgressBar().setValue(0);
-		mw.getProgressBar().setStringPainted(false);
-		mw.getProgressBar().paint(mw.getProgressBar().getGraphics());
+		consoleOut("loading kill count ");
+
+		loadZealotKillCount();
+		if (!t1.isAlive())
+			t1.start();
+
 		consoleOut(" [ OK ]\n");
 		updateConsoleOut();
 	}
 
-	public static void filterData(boolean filterCT, String CT, boolean matchCaseCT, boolean filterCTL, String CTL,
-			boolean matchCaseCTL, boolean filterSL, int SL, boolean filterTT, int TT, boolean filterHB, int HB) {
-		// TODO Maybe clear out the console first?
-		// mw.getBtnFilterButton().setEnabled(false);
-		if (data.isEmpty()) {
-			consoleOut(" [ FAILURE ] No data collected yet!\n");
-			// mw.getBtnFilterButton().setEnabled(true);
-			return;
-		}
-		consoleOut("Filtering collected data ...\n");
-		Comparator<Auction> comp = mw.getRdbtnSecondsleftdec().isSelected() ? new CompSecondsLeftDec()
-				: mw.getRdbtnHighestbidasc().isSelected() ? new CompHighestBidAsc() : null;
-		if (comp != null)
-			filterStream(data.stream(), filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL, filterSL, SL, filterTT,
-					TT, filterHB, HB).sorted(comp).collect(Collectors.toCollection(ArrayList::new))
-							.forEach(a -> consoleOut(a + "\n"));
-		else
-			filterStream(data.stream(), filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL, filterSL, SL, filterTT,
-					TT, filterHB, HB).collect(Collectors.toCollection(ArrayList::new))
-							.forEach(a -> consoleOut(a + "\n"));
-		long count_buyable = (filterStream(data.stream(), filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL,
-				filterSL, SL, filterTT, TT, filterHB, HB).sorted(new CompHighestNextBidAsc()))
-						.filter(a -> a.getSeconds_left() > buy_time).count();
-		consoleOut("Buy Price [analyzed " + count_buyable + " bidable auctions]\n");
-		if (count_buyable > 0) {
-			printCheapest(5, filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL, filterSL, SL, filterTT, TT,
-					filterHB, HB);
-		} else
-			consoleOut("No results!\n");
-		long count_sold = filterStream(data.stream(), filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL, true, 0,
-				filterTT, TT, true, Math.max(1, HB)).count();
-		long sum_sold = filterStream(data.stream(), filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL, true, 0,
-				filterTT, TT, true, Math.max(1, HB)).mapToLong(a -> a.getHighest_bid_amount() / a.getItem_count())
-						.sum();
-		consoleOut("Sell Price [analyzed " + count_sold + " sold auctions]\n");
-		if (count_sold > 0) {
-			long min = (filterStream(data.stream(), filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL, true, 0,
-					filterTT, TT, true, Math.max(1, HB)).mapToLong(a -> a.getHighest_bid_amount() / a.getItem_count())
-							.min().getAsLong());
-			consoleOut("Minimum: " + addCommas(min) + " coins (x 64 = " + addCommas(min * 64) + " coins)\n");
-			long average = (sum_sold / count_sold);
-			consoleOut("Average: " + addCommas(average) + " coins (x 64 = " + addCommas(average * 64) + " coins)\n");
-			long max = (filterStream(data.stream(), filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL, true, 0,
-					filterTT, TT, true, Math.max(1, HB)).mapToLong(a -> a.getHighest_bid_amount() / a.getItem_count())
-							.max().getAsLong());
-			consoleOut("Maximum: " + addCommas(max) + " coins (x 64 = " + addCommas(max * 64) + " coins)\n");
-		} else
-			consoleOut("No results!\n");
-		if (mw.getChckbxOpMode().isSelected()) {
-			long countTotal_sold = filterStream(data.stream(), false, "", matchCaseCT, false, "", matchCaseCTL, true, 0,
-					false, 0, true, Math.max(1, HB)).count();
-			consoleOut("Best Selling on average [analyzed all " + countTotal_sold + " sold auctions]\n");
-			if (countTotal_sold > 0) {
-				Set<String> set = data.stream().map(a -> a.getItem_name()).distinct().collect(Collectors.toSet());
-				ArrayList<SoldItemAveragePrice> list = new ArrayList<>();
-				for (String s : set) {
-					long average_count_sold = filterStream(data.stream(), true, s, true, false, "", matchCaseCTL, true,
-							0, false, 0, true, Math.max(1, HB)).count();
-					if (average_count_sold > 0) {
-						long average_sum_sold = filterStream(data.stream(), true, s, true, false, "", matchCaseCTL,
-								true, 0, false, 0, true, Math.max(1, HB))
-										.mapToLong(a -> a.getHighest_bid_amount() / a.getItem_count()).sum();
-						long average_total_sum_sold = filterStream(data.stream(), true, s, true, false, "",
-								matchCaseCTL, true, 0, false, 0, true, Math.max(1, HB))
-										.mapToLong(a -> a.getItem_count()).sum();
-						list.add(new SoldItemAveragePrice(s, average_sum_sold / average_count_sold,
-								average_total_sum_sold));
-					}
-				}
-				List<SoldItemAveragePrice> list_sorted = list.stream().sorted().collect(Collectors.toList());
-				int count = 0;
-				for (SoldItemAveragePrice e : list_sorted) {
-					if (e.getPrice() <= 0 || e.getCount() < (int) mw.getSpinnerMinSold().getValue())
-						continue;
-					consoleOut("Best Average " + (count + 1) + ": " + e.getItem_name() + " with "
-							+ addCommas(e.getPrice()) + " coins, (" + e.getCount() + " items sold)\n");
-					count++;
-					if (count >= (int) mw.getSpinnerTop().getValue())
-						break;
-				}
-			} else
-				consoleOut("No results!\n");
-		}
-		updateConsoleOut();
-	}
-
-	private static void printCheapest(int topX, boolean filterCT, String CT, boolean matchCaseCT, boolean filterCTL,
-			String CTL, boolean matchCaseCTL, boolean filterSL, int SL, boolean filterTT, int TT, boolean filterHB,
-			int HB) {
-		long count = (filterStream(data.stream(), filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL, filterSL, SL,
-				filterTT, TT, false, HB).sorted(new CompHighestNextBidAsc()))
-						.filter(a -> a.getSeconds_left() > buy_time).count();
-		for (int i = 0; i < topX && i < count; i++) {
-			Auction min = (filterStream(data.stream(), filterCT, CT, matchCaseCT, filterCTL, CTL, matchCaseCTL,
-					filterSL, SL, filterTT, TT, false, HB).sorted(new CompHighestNextBidAsc()))
-							.filter(a -> a.getSeconds_left() > buy_time).skip(i).findFirst().get();
-			String cheapestAuctioneer = getPlayerFromUUID(min.getAuctioneer());
-			consoleOut("Minimum " + (i + 1) + ": " + addCommas(min.getNextBidAmount()) + " coins for "
-					+ min.getItem_count() + "x " + min.getItem_name() + " by " + cheapestAuctioneer + " "
-					+ min.getSeconds_left() + "sec left" + "\n");
-		}
-	}
-
-	private static Stream<Auction> filterStream(Stream<Auction> s, boolean filterCT, String CT, boolean matchCaseCT,
-			boolean filterCTL, String CTL, boolean matchCaseCTL, boolean filterSL, int SL, boolean filterTT, int TT,
-			boolean filterHB, int HB) {
-		return s.filter(a -> !filterCT || (matchCaseCT ? a.getItem_name().equalsIgnoreCase(CT)
-				: a.getItem_name().toLowerCase().contains(CT.toLowerCase())))
-				.filter(a -> !filterCTL || (matchCaseCTL ? a.getItem_lore().contains(CTL)
-						: a.getItem_lore().toLowerCase().contains(CTL.toLowerCase())))
-				.filter(a -> !filterSL || a.getSeconds_left() < SL)
-				.filter(a -> !filterTT || a.getSeconds_on() < 5 * 60 || a.getSeconds_on() > TT)
-				.filter(a -> !filterHB || a.getHighest_bid_amount() > HB);
-	}
-
 	private static void consoleOut(String s) {
 		mw.getConsoleOut().append(s);
-	}
-
-	private static String addCommas(long l) {
-		String tmp = "" + l;
-		String res = "";
-		for (int i = 0; i < tmp.length(); i++)
-			if (i % 3 == 0 && i != 0)
-				res = (tmp.charAt(tmp.length() - 1 - i) + ",").concat(res);
-			else
-				res = (tmp.charAt(tmp.length() - 1 - i) + "").concat(res);
-		return res;
 	}
 
 	private static void updateConsoleOut() {
@@ -218,11 +153,16 @@ public class Main {
 		t.start();
 	}
 
-	private static void loadPage(int page) {
+	private static void loadZealotKillCount() {
 		URL url;
 		String out = "";
+		if (currentProfile == null) {
+			consoleOut("[ FAILURE ] no profile selected!\n");
+			return;
+		}
 		try {
-			url = new URL("https://api.hypixel.net/skyblock/auctions?key=" + api_key + "&page=" + page);
+			url = new URL(
+					"https://api.hypixel.net/skyblock/profile?key=" + api_key + "&profile=" + currentProfile.getUuid());
 			HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
 			out = getContent(con);
 		} catch (MalformedURLException e) {
@@ -234,103 +174,17 @@ public class Main {
 		}
 		try {
 			JSONObject obj = new JSONObject(out);
-			long timestamp = obj.getLong("lastUpdated");
-			max_pages = obj.getInt("totalPages");
-			// mw.getBtnFilterButton().setEnabled(false);
-			for (Auction a : data) {
-				a.setTimestamp(timestamp);
-			}
-			JSONArray arr = obj.getJSONArray("auctions");
-			for (int i = 0; i < arr.length(); i++) {
-				JSONObject auction = arr.getJSONObject(i);
-				String item_name = auction.getString("item_name");
-				String item_lore = auction.getString("item_lore");
-				String item_bytes = auction.getString("item_bytes");
-				int item_count = itemCountFromItemBytes(item_bytes);
-				String uuid = auction.getString("uuid");
-				String auctioneer = auction.getString("auctioneer");
-				long start = auction.getLong("start");
-				long end = auction.getLong("end");
-				long highest_bid_amount = auction.getLong("highest_bid_amount");
-				long starting_bid = auction.getLong("starting_bid");
-				// TODO maybe add more detail to the auction objects
-				// TODO add item lore and a way to filter the output by text contained by that
-				Auction addition = new Auction(uuid, auctioneer, start, end, timestamp, item_name, item_lore,
-						highest_bid_amount, item_count, starting_bid);
-				int tmp = data.indexOf(addition);
-				if (tmp < 0)
-					data.add(addition);
-				else {
-					data.get(tmp).setTimestamp(timestamp);
-					data.get(tmp).setEnd(end);
-					data.get(tmp).setHighest_bid_amount(highest_bid_amount);
-				}
-			}
-			// mw.getBtnFilterButton().setEnabled(true);
+			JSONObject player_profile = obj.getJSONObject("profile").getJSONObject("members")
+					.getJSONObject(currentProfile.getUuid());
+			long last_save = player_profile.getLong("last_save");
+			long kills_zealot_enderman = player_profile.getJSONObject("stats").getLong("kills_zealot_enderman");
+			currentProfile.addZealotKillCount(last_save, kills_zealot_enderman);
+			last_updated = last_save;
+			mw.getLblNewLabel_killCount().setText("" + (kills_zealot_enderman - (long) kills_start));
+			consoleOut("Timestamp: " + last_save + ", Kills:" + kills_zealot_enderman + "");
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-	}
-
-	private static String getPlayerFromUUID(String uuid) {
-		URL url;
-		String out = "";
-		try {
-			url = new URL("https://api.hypixel.net/player?key=" + api_key + "&uuid=" + uuid);
-			HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
-			out = getContent(con);
-		} catch (MalformedURLException e) {
-			consoleOut("[ FAILURE ] Some internet connection problem!\n");
-			e.printStackTrace();
-		} catch (IOException e) {
-			consoleOut("[ FAILURE ] Some internet connection problem!\n");
-			e.printStackTrace();
-		}
-		try {
-			JSONObject obj = new JSONObject(out);
-			JSONObject player = obj.getJSONObject("player");
-			return player.getString("playername");
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-		return "<request failed>";
-	}
-
-	private static int itemCountFromItemBytes(String s) {
-		String jsonFormatOutput = "";
-		try {
-			jsonFormatOutput = jsonCode(s);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		String out = jsonFormatOutput.split("Count")[1].split("\n")[0];
-		if (out == null || out.isEmpty())
-			return 1;
-		return out.getBytes()[0];
-	}
-
-	public static String jsonCode(String inputString) throws IOException {
-		String jsonFormatOutput = decompressGzip(decodeBase64String(inputString));
-		return jsonFormatOutput;
-	}
-
-	public static byte[] decodeBase64String(String string) {
-		return Base64.getDecoder().decode(string);
-	}
-
-	public static String decompressGzip(byte[] compressed) throws IOException {
-		final int BUFFER_SIZE = 32;
-		ByteArrayInputStream byteArrayStream = new ByteArrayInputStream(compressed);
-		GZIPInputStream gzipStream = new GZIPInputStream(byteArrayStream, BUFFER_SIZE);
-		StringBuilder string = new StringBuilder();
-		byte[] data = new byte[BUFFER_SIZE];
-		int bytesRead;
-		while ((bytesRead = gzipStream.read(data)) != -1) {
-			string.append(new String(data, 0, bytesRead));
-		}
-		gzipStream.close();
-		byteArrayStream.close();
-		return string.toString();
 	}
 
 	private static String getContent(HttpsURLConnection con) {
@@ -352,5 +206,16 @@ public class Main {
 			}
 		}
 		return "";
+	}
+
+	public static void setStart() {
+		Set<Entry<Long, Long>> set = currentProfile.getZealotKillCounts().entrySet();
+		if (set.size() > 0) {
+			@SuppressWarnings("unchecked")
+			Entry<Long, Long> lastValue = (Entry<Long, Long>) set.toArray()[set.size() - 1];
+			kills_start = (long) lastValue.getValue();
+			last_updated = (long) lastValue.getKey();
+		}
+
 	}
 }
